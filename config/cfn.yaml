@@ -1,0 +1,1088 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Creates a stack for running RoseTTAFold on AWS Batch (extended from
+  VPC_with_PublicIPs_And_DNS.template sample)
+
+Parameters:
+  Prefix:
+    Description: The prefix to use for all resource tags.
+    Type: String
+    Default: "AWS-RF"
+
+Resources:
+  ##################################################
+  # Network Configuration
+  ##################################################
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      EnableDnsSupport: "true"
+      EnableDnsHostnames: "true"
+      CidrBlock: "10.0.0.0/16"
+      Tags:
+        - Key: Application
+          Value: !Ref "AWS::StackName"
+        - Key: Network
+          Value: Public
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "VPC"]]
+
+  PublicSubnet0:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, Fn::GetAZs: ""]
+      CidrBlock:
+        Fn::Select:
+          - 0
+          - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
+      MapPublicIpOnLaunch: "true"
+      Tags:
+        - Key: Application
+          Value: !Ref "AWS::StackName"
+        - Key: Network
+          Value: Public
+        - Key: Name
+          Value:
+            !Join ["-", [!Ref Prefix, "public", !Select [0, Fn::GetAZs: ""]]]
+
+  PublicSubnet1:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, Fn::GetAZs: ""]
+      CidrBlock:
+        Fn::Select:
+          - 1
+          - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
+      MapPublicIpOnLaunch: "true"
+      Tags:
+        - Key: Application
+          Value:
+            Ref: "AWS::StackName"
+        - Key: Network
+          Value: Public
+        - Key: Name
+          Value:
+            !Join ["-", [!Ref Prefix, "public", !Select [1, Fn::GetAZs: ""]]]
+
+  PublicSubnet2:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, Fn::GetAZs: ""]
+      CidrBlock:
+        Fn::Select:
+          - 2
+          - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
+      MapPublicIpOnLaunch: "true"
+      Tags:
+        - Key: Application
+          Value:
+            Ref: "AWS::StackName"
+        - Key: Network
+          Value: Public
+        - Key: Name
+          Value:
+            !Join ["-", [!Ref Prefix, "public", !Select [2, Fn::GetAZs: ""]]]
+
+  PrivateSubnet0:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone: !Select [0, Fn::GetAZs: ""]
+      CidrBlock:
+        Fn::Select:
+          - 3
+          - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
+      Tags:
+        - Key: Application
+          Value:
+            Ref: "AWS::StackName"
+        - Key: Network
+          Value: Private
+        - Key: Name
+          Value:
+            !Join ["-", [!Ref Prefix, "private", !Select [0, Fn::GetAZs: ""]]]
+
+  PrivateSubnet1:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone: !Select [1, Fn::GetAZs: ""]
+      CidrBlock:
+        Fn::Select:
+          - 4
+          - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
+      Tags:
+        - Key: Application
+          Value:
+            Ref: "AWS::StackName"
+        - Key: Network
+          Value: Private
+        - Key: Name
+          Value:
+            !Join ["-", [!Ref Prefix, "private", !Select [1, Fn::GetAZs: ""]]]
+
+  PrivateSubnet2:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone: !Select [2, Fn::GetAZs: ""]
+      CidrBlock:
+        Fn::Select:
+          - 5
+          - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
+      Tags:
+        - Key: Application
+          Value:
+            Ref: "AWS::StackName"
+        - Key: Network
+          Value: Private
+        - Key: Name
+          Value:
+            !Join ["-", [!Ref Prefix, "private", !Select [2, Fn::GetAZs: ""]]]
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Application
+          Value:
+            Ref: "AWS::StackName"
+        - Key: Network
+          Value: Public
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "IGW"]]
+
+  GatewayToInternet:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId:
+        Ref: VPC
+      InternetGatewayId:
+        Ref: InternetGateway
+
+  PublicRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Application
+          Value:
+            Ref: "AWS::StackName"
+        - Key: Network
+          Value: Public
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "public-route-table"]]
+
+  PublicRoute:
+    Type: "AWS::EC2::Route"
+    DependsOn: GatewayToInternet
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway
+
+  PublicSubnetRouteTableAssociation0:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet0
+      RouteTableId:
+        Ref: PublicRouteTable
+
+  PublicSubnetRouteTableAssociation1:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet1
+      RouteTableId:
+        Ref: PublicRouteTable
+
+  PublicSubnetRouteTableAssociation2:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet2
+      RouteTableId:
+        Ref: PublicRouteTable
+
+  ElasticIP0:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "elastic-ip-0"]]
+
+  ElasticIP1:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "elastic-ip-1"]]
+
+  ElasticIP2:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "elastic-ip-2"]]
+
+  NATGateway0:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId:
+        "Fn::GetAtt":
+          - ElasticIP0
+          - AllocationId
+      SubnetId:
+        Ref: PublicSubnet0
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "NATGateway-0"]]
+
+  NATGateway1:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId:
+        "Fn::GetAtt":
+          - ElasticIP1
+          - AllocationId
+      SubnetId:
+        Ref: PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "NATGateway-1"]]
+
+  NATGateway2:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId:
+        "Fn::GetAtt":
+          - ElasticIP2
+          - AllocationId
+      SubnetId:
+        Ref: PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "NATGateway-2"]]
+
+  PrivateRouteTable0:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "private-route-table-0"]]
+
+  PrivateRouteTable1:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "private-route-table-1"]]
+
+  PrivateRouteTable2:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "private-route-table-2"]]
+
+  PrivateRouteToInternet0:
+    Type: "AWS::EC2::Route"
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable0
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NATGateway0
+
+  PrivateRouteToInternet1:
+    Type: "AWS::EC2::Route"
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NATGateway1
+
+  PrivateRouteToInternet2:
+    Type: "AWS::EC2::Route"
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NATGateway2
+
+  PrivateSubnetRouteTableAssociation0:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet0
+      RouteTableId:
+        Ref: PrivateRouteTable0
+
+  PrivateSubnetRouteTableAssociation1:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet1
+      RouteTableId:
+        Ref: PrivateRouteTable1
+
+  PrivateSubnetRouteTableAssociation2:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet2
+      RouteTableId:
+        Ref: PrivateRouteTable2
+
+  ##################################################
+  # S3
+  ##################################################
+
+  ResultsS3:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "aws-rosettafold-${AWS::AccountId}-${AWS::Region}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "-s3"]]
+    DeletionPolicy: Delete
+
+  S3Endpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action:
+              - "s3:GetObject"
+              - "s3:PutObject"
+              - "s3:DeleteObject"
+            Resource:
+              - !GetAtt ResultsS3.Arn
+      RouteTableIds:
+        - !Ref PublicRouteTable
+        - !Ref PrivateRouteTable0
+        - !Ref PrivateRouteTable1
+        - !Ref PrivateRouteTable2
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+      VpcId: !Ref VPC
+
+  ##################################################
+  # FSx File System
+  ##################################################
+  FSX:
+    Type: AWS::FSx::FileSystem
+    Properties:
+      FileSystemType: "LUSTRE"
+      StorageCapacity: 4800
+      StorageType: "SSD"
+      SubnetIds:
+        - !Ref PrivateSubnet0
+      LustreConfiguration:
+        DataCompressionType: "LZ4"
+        DeploymentType: "PERSISTENT_1"
+        PerUnitStorageThroughput: 50
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "Fsx-lustre"]]
+
+  ##################################################
+  # EC2 Launch Template
+  ##################################################
+
+  RFInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ["-", [!Ref Prefix, "instance-role"]]
+      Description: "Required service policies to support running RoseTTAFold on AWS Batch"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+      Path: /
+      Policies:
+        - PolicyName: limitedS3
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !GetAtt ResultsS3.Arn
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GettObject
+                  - s3:DeleteObject
+                Resource: !Join ["/", [!GetAtt ResultsS3.Arn, "*"]]
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "instance-role"]]
+
+  InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      InstanceProfileName: !Join ["-", [!Ref Prefix, "instance-profile"]]
+      Path: /
+      Roles:
+        - !Ref RFInstanceRole
+
+  InstanceLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Join ["-", [!Ref Prefix, "ec2-launch-template"]]
+      LaunchTemplateData:
+        BlockDeviceMappings:
+          - DeviceName: "/dev/xvda"
+            Ebs:
+              DeleteOnTermination: true
+              Encrypted: true
+              VolumeSize: 50
+              VolumeType: "gp2"
+        IamInstanceProfile:
+          Name: !Ref InstanceProfile
+        SecurityGroups:
+          - !GetAtt VPC.DefaultSecurityGroup
+        TagSpecifications:
+          - ResourceType: "instance"
+            Tags:
+              - Key: Name
+                Value: !Join ["-", [!Ref Prefix, "EC2-instance"]]
+        UserData:
+          Fn::Base64:
+            Fn::Join:
+              [
+                "",
+                [
+                  "MIME-Version: 1.0\n",
+                  "Content-Type: multipart/mixed; boundary=\"==MYBOUNDARY==\"\n",
+                  "--==MYBOUNDARY==\n",
+                  "Content-Type: text/cloud-config; charset=\"us-ascii\"\n",
+                  "runcmd:\n",
+                  "- file_system_id_01=",
+                  !Ref FSX,
+                  "\n",
+                  "- region=",
+                  !Ref AWS::Region,
+                  "\n",
+                  "- fsx_directory=/fsx\n",
+                  "- fsx_mount_name=",
+                  !GetAtt FSX.LustreMountName,
+                  "\n",
+                  "- amazon-linux-extras install -y lustre2.10\n",
+                  "- mkdir -p ${fsx_directory}\n",
+                  "- mount -t lustre ${file_system_id_01}.fsx.${region}.amazonaws.com@tcp:/${fsx_mount_name} ${fsx_directory}\n",
+                  "--==MYBOUNDARY==--",
+                ],
+              ]
+
+  ##################################################
+  # Container Services
+  ##################################################
+  RFCodeRepository:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryDescription: Code for running RoseTTAFold on AWS
+      RepositoryName: AWS-RoseTTAFold
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "code-repository"]]
+
+  RFContainerRegistry:
+    Type: AWS::ECR::Repository
+    Properties:
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      RepositoryName: aws-rosettafold
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "container-repository"]]
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ["-", [!Ref Prefix, "codebuild-role"]]
+      Description: "Required service policies to support building AWS-RoseTTAFold container"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+      Path: /
+      Policies:
+        - PolicyName: RFCodeBuildPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - Fn::Join:
+                      [
+                        ":",
+                        [
+                          "arn:aws:logs",
+                          !Ref AWS::Region,
+                          !Ref AWS::AccountId,
+                          "log-group:/aws/codebuild/AWS-RoseTTAFold-Container-Build",
+                        ],
+                      ]
+                  - Fn::Join:
+                      [
+                        ":",
+                        [
+                          "arn:aws:logs",
+                          !Ref AWS::Region,
+                          !Ref AWS::AccountId,
+                          "log-group:/aws/codebuild/AWS-RoseTTAFold-Container-Build",
+                          "*",
+                        ],
+                      ]
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketAcl
+                  - s3:GetBucketLocation
+                Resource:
+                  - !Join [
+                      "-",
+                      ["arn:aws:s3:::codepipeline", !Ref AWS::Region, "*"],
+                    ]
+              - Effect: Allow
+                Action:
+                  - codecommit:GitPull
+                Resource:
+                  - Fn::Join:
+                      [
+                        ":",
+                        [
+                          "arn:aws:codecommit",
+                          !Ref AWS::Region,
+                          !Ref AWS::AccountId,
+                          !GetAtt RFCodeRepository.Name,
+                        ],
+                      ]
+              - Effect: Allow
+                Action:
+                  - codebuild:CreateReportGroup
+                  - codebuild:CreateReport
+                  - codebuild:UpdateReport
+                  - codebuild:BatchPutTestCases
+                  - codebuild:BatchPutCodeCoverages
+                Resource:
+                  - Fn::Join:
+                      [
+                        ":",
+                        [
+                          "arn:aws:s3:::codebuild",
+                          !Ref AWS::Region,
+                          !Ref AWS::AccountId,
+                          "report-group/RoseTTAFold-Docker-Build-*",
+                        ],
+                      ]
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "instance-role"]]
+
+  RFCodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Description: Build Docker container for RoseTTAFold execution on AWS Batch
+      Environment:
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        EnvironmentVariables:
+          - Name: IMAGE_TAG
+            Value: latest
+          - Name: IMAGE_REPO_NAME
+            Value: !Ref RFContainerRegistry
+          - Name: ACCOUNT_ID
+            Value: !Ref AWS::AccountId
+        Image: aws/codebuild/standard:4.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+      Name: AWS-RoseTTAFold-Container-Build
+      ResourceAccessRole: !GetAtt CodeBuildRole.Arn
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        BuildSpec: config/container_buildspec.yml
+        GitCloneDepth: 1
+        Location: !GetAtt RFCodeRepository.CloneUrlHttp
+        Type: CODECOMMIT
+      SourceVersion: refs/heads/main
+      Visibility: PRIVATE
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "codebuild-project"]]
+
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ["-", [!Ref Prefix, "codepipeline-role"]]
+      Description: "Required service policies to support running AWS-RoseTTAFold build pipeline"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      Policies:
+        - PolicyName: codePipelineDefault
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action:
+                  - iam:PassRole
+                Resource: "*"
+                Effect: Allow
+                Condition:
+                  StringEqualsIfExists:
+                    iam:PassedToService:
+                      - cloudformation.amazonaws.com
+                      - elasticbeanstalk.amazonaws.com
+                      - ec2.amazonaws.com
+                      - ecs-tasks.amazonaws.com
+              - Action:
+                  - codecommit:CancelUploadArchive
+                  - codecommit:GetBranch
+                  - codecommit:GetCommit
+                  - codecommit:GetRepository
+                  - codecommit:GetUploadArchiveStatus
+                  - codecommit:UploadArchive
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - codedeploy:CreateDeployment
+                  - codedeploy:GetApplication
+                  - codedeploy:GetApplicationRevision
+                  - codedeploy:GetDeployment
+                  - codedeploy:GetDeploymentConfig
+                  - codedeploy:RegisterApplicationRevision
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - codestar-connections:UseConnection
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - elasticbeanstalk:*
+                  - ec2:*
+                  - elasticloadbalancing:*
+                  - autoscaling:*
+                  - cloudwatch:*
+                  - s3:*
+                  - sns:*
+                  - cloudformation:*
+                  - rds:*
+                  - sqs:*
+                  - ecs:*
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - lambda:InvokeFunction
+                  - lambda:ListFunctions
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - opsworks:CreateDeployment
+                  - opsworks:DescribeApps
+                  - opsworks:DescribeCommands
+                  - opsworks:DescribeDeployments
+                  - opsworks:DescribeInstances
+                  - opsworks:DescribeStacks
+                  - opsworks:UpdateApp
+                  - opsworks:UpdateStack
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - cloudformation:CreateStack
+                  - cloudformation:DeleteStack
+                  - cloudformation:DescribeStacks
+                  - cloudformation:UpdateStack
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:DeleteChangeSet
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:ExecuteChangeSet
+                  - cloudformation:SetStackPolicy
+                  - cloudformation:ValidateTemplate
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuildBatches
+                  - codebuild:StartBuildBatch
+                Resource: "*"
+                Effect: Allow
+              - Effect: Allow
+                Action:
+                  - devicefarm:ListProjects
+                  - devicefarm:ListDevicePools
+                  - devicefarm:GetRun
+                  - devicefarm:GetUpload
+                  - devicefarm:CreateUpload
+                  - devicefarm:ScheduleRun
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - servicecatalog:ListProvisioningArtifacts
+                  - servicecatalog:CreateProvisioningArtifact
+                  - servicecatalog:DescribeProvisioningArtifact
+                  - servicecatalog:DeleteProvisioningArtifact
+                  - servicecatalog:UpdateProduct
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - cloudformation:ValidateTemplate
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ecr:DescribeImages
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - states:DescribeExecution
+                  - states:DescribeStateMachine
+                  - states:StartExecution
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - appconfig:StartDeployment
+                  - appconfig:StopDeployment
+                  - appconfig:GetDeployment
+                Resource: "*"
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "instance-role"]]
+
+  RFCodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Location: !Ref ResultsS3
+        Type: S3
+      Name: AWS-RoseTTAFold-Container-Deployment-Pipeline
+      RestartExecutionOnUpdate: true
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: Source
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeCommit
+                Version: 1
+              Configuration:
+                RepositoryName: !Ref RFCodeRepository
+                BranchName: main
+                PollForSourceChanges: "false"
+              Namespace: SourceVariables
+              OutputArtifacts:
+                - Name: SourceArtifact
+              Region: !Ref AWS::Region
+              RunOrder: 1
+        - Name: Build
+          Actions:
+            - Name: Build
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              Configuration:
+                ProjectName: !Ref RFCodeBuildProject
+              InputArtifacts:
+                - Name: SourceArtifact
+              Namespace: BuildVariables
+              OutputArtifacts:
+                - Name: BuildArtifact
+              Region: !Ref AWS::Region
+              RunOrder: 2
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "code-pipeline"]]
+
+  ##################################################
+  # Batch Environment
+  ##################################################
+
+  CPUComputeEnvironment:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      ComputeEnvironmentName:
+        !Join ["-", [!Ref Prefix, "compute-environment-cpu"]]
+      ComputeResources:
+        AllocationStrategy: BEST_FIT_PROGRESSIVE
+        InstanceRole: !Ref InstanceProfile
+        InstanceTypes:
+          - optimal
+        LaunchTemplate:
+          LaunchTemplateId: !Ref InstanceLaunchTemplate
+          Version: $Latest
+        MaxvCpus: 256
+        MinvCpus: 0
+        Subnets:
+          - Ref: PrivateSubnet0
+          - Ref: PrivateSubnet1
+          - Ref: PrivateSubnet2
+        Type: EC2
+      State: ENABLED
+      Type: MANAGED
+      Tags:
+        Name: !Join ["-", [!Ref Prefix, "gpu-compute-environment"]]
+
+  GPUComputeEnvironment:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      ComputeEnvironmentName:
+        !Join ["-", [!Ref Prefix, "compute-environment-gpu"]]
+      ComputeResources:
+        AllocationStrategy: BEST_FIT_PROGRESSIVE
+        InstanceRole: !Ref InstanceProfile
+        InstanceTypes:
+          - g4dn
+          - p3
+        LaunchTemplate:
+          LaunchTemplateId: !Ref InstanceLaunchTemplate
+          Version: $Latest
+        MaxvCpus: 256
+        MinvCpus: 0
+        Subnets:
+          - Ref: PrivateSubnet0
+          - Ref: PrivateSubnet1
+          - Ref: PrivateSubnet2
+        Type: EC2
+      State: ENABLED
+      Type: MANAGED
+      Tags:
+        Name: !Join ["-", [!Ref Prefix, "cpu-compute-environment"]]
+
+  CPUJobQueue:
+    Type: AWS::Batch::JobQueue
+    Properties:
+      ComputeEnvironmentOrder:
+        - ComputeEnvironment: !Ref CPUComputeEnvironment
+          Order: 1
+      JobQueueName: !Join ["-", [!Ref Prefix, "cpu-job-queue"]]
+      Priority: 10
+      State: ENABLED
+      Tags:
+        Name: !Join ["-", [!Ref Prefix, "cpu-job-queue"]]
+
+  GPUJobQueue:
+    Type: AWS::Batch::JobQueue
+    Properties:
+      ComputeEnvironmentOrder:
+        - ComputeEnvironment: !Ref GPUComputeEnvironment
+          Order: 1
+      JobQueueName: !Join ["-", [!Ref Prefix, "gpu-job-queue"]]
+      Priority: 10
+      State: ENABLED
+      Tags:
+        Name: !Join ["-", [!Ref Prefix, "gpu-job-queue"]]
+
+  CPUJobDefinition:
+    Type: AWS::Batch::JobDefinition
+    Properties:
+      ContainerProperties:
+        Command:
+          - "/bin/bash"
+          - "run_aws_data_prep_ver.sh"
+          - "-i"
+          - !Join ["", ["s3://", !Ref ResultsS3]]
+          - "-o"
+          - !Join ["", ["s3://", !Ref ResultsS3]]
+          - "-n"
+          - "input.fa"
+          - "-w"
+          - "/work"
+          - "-d"
+          - "/fsx"
+          - "-c"
+          - "16"
+          - "-m"
+          - "60"
+        Image:
+          !Join [":", [!GetAtt RFContainerRegistry.RepositoryUri, "latest"]]
+        LogConfiguration:
+          LogDriver: awslogs
+        MountPoints:
+          - ContainerPath: /fsx
+            ReadOnly: True
+            SourceVolume: fsx
+        ResourceRequirements:
+          - Type: VCPU
+            Value: 16
+          - Type: MEMORY
+            Value: 60000
+        Volumes:
+          - Name: fsx
+            Host:
+              SourcePath: /fsx
+      JobDefinitionName: AWS-RosettaFold-CPU-Job-Definition
+      PlatformCapabilities:
+        - EC2
+      PropagateTags: true
+      RetryStrategy:
+        Attempts: 2
+      Tags:
+        Name: !Join ["-", [!Ref Prefix, "cpu-job-definition"]]
+      Type: container
+
+  GPUJobDefinition:
+    Type: AWS::Batch::JobDefinition
+    Properties:
+      ContainerProperties:
+        Command:
+          - "/bin/bash"
+          - "run_aws_predict_ver.sh"
+          - "-i"
+          - !Join ["", ["s3://", !Ref ResultsS3]]
+          - "-o"
+          - !Join ["", ["s3://", !Ref ResultsS3]]
+          - "-n"
+          - "input.fa"
+          - "-w"
+          - "/work"
+          - "-d"
+          - "/fsx"
+          - "-x"
+          - "/fsx"
+          - "-c"
+          - "32"
+          - "-m"
+          - "90"
+        Environment:
+          - Name: CUDA_VISIBLE_DEVICES
+            Value: 2
+        Image: !Join [":", [!GetAtt RFContainerRegistry.RepositoryUri, "latest"]]
+        LogConfiguration:
+          LogDriver: awslogs
+        MountPoints:
+          - ContainerPath: /fsx
+            ReadOnly: True
+            SourceVolume: fsx
+        ResourceRequirements:
+          - Type: VCPU
+            Value: 32
+          - Type: MEMORY
+            Value: 90000
+          - Type: GPU
+            Value: 2
+        Volumes:
+          - Name: fsx
+            Host:
+              SourcePath: /fsx
+      JobDefinitionName: AWS-RosettaFold-GPU-Job-Definition
+      PlatformCapabilities:
+        - EC2
+      PropagateTags: true
+      RetryStrategy:
+        Attempts: 2
+      Tags:
+        Name: !Join ["-", [!Ref Prefix, "gpu-job-definition"]]
+      Type: container
+
+  ##################################################
+  # Populate Filesystem
+  ##################################################
+
+  DataPopulator:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: AWS-RoseTTAFold-Populate-File-System
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Description: Populate the file system with ref data from a public S3 bucket
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          phases:
+            pre_build:
+              commands:
+                - echo Pre-build started on `date`
+                - echo Mounting FSx file system
+                - amazon-linux-extras install -y lustre2.10
+                - mkdir -p $FSX_DIRECTORY
+                - mount -t lustre FILE_SYSTEM_DNS@tcp:/$FSX_MOUNT_NAME $FSX_DIRECTORY
+                - echo Pre-build complete
+            build:
+              commands:
+                - echo Build started on `date`
+                - echo Copying ref files
+                - aws cli s3 cp s3://$REF_DATA_BUCKET_NAME ${fsx_directory} --recursive true
+                - echo Build complete
+      Environment:
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        EnvironmentVariables:
+            - Name: FILE_SYSTEM_DNS
+              Value:  !GetAtt FSX.DNSName
+            - Name: REGION
+              Value: !Ref AWS::Region
+            - Name: FSX_DIRECTORY
+              Value: /fsx 
+            - Name: FSX_MOUNT_NAME
+              Value: !GetAtt FSX.LustreMountName    
+            - Name: REF_DATA_BUCKET_NAME
+              Value: aws-rosettafold-ref-data
+        Image: aws/codebuild/standard:4.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Tags:
+        - Key: Name
+          Value: !Join ["-", [!Ref Prefix, "codebuild-project"]]
