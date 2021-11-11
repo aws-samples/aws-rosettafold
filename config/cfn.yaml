@@ -568,18 +568,7 @@ Resources:
                           "arn:aws:logs",
                           !Ref AWS::Region,
                           !Ref AWS::AccountId,
-                          "log-group:/aws/codebuild/AWS-RoseTTAFold-Container-Build",
-                        ],
-                      ]
-                  - Fn::Join:
-                      [
-                        ":",
-                        [
-                          "arn:aws:logs",
-                          !Ref AWS::Region,
-                          !Ref AWS::AccountId,
-                          "log-group:/aws/codebuild/AWS-RoseTTAFold-Container-Build",
-                          "*",
+                          "log-group:/aws/codebuild/AWS-RoseTTAFold*",
                         ],
                       ]
               - Effect: Allow
@@ -594,7 +583,7 @@ Resources:
                       "-",
                       ["arn:aws:s3:::codepipeline", !Ref AWS::Region, "*"],
                     ]
-                  - !GetAtt ResultsS3.Arn
+                  - !Join ["",[!GetAtt ResultsS3.Arn, "*"]]
               - Effect: Allow
                 Action:
                   - codecommit:GitPull

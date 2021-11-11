@@ -25,9 +25,9 @@ RUN /opt/conda/bin/conda env create -f RoseTTAFold-linux.yml \
 
 RUN apt-get install libgomp1
 
-COPY src/run_aws_e2e_ver.sh .
-COPY src/run_aws_data_prep_ver.sh .
-COPY src/run_aws_predict_ver.sh .
+COPY run_aws_e2e_ver.sh .
+COPY run_aws_data_prep_ver.sh .
+COPY run_aws_predict_ver.sh .
 COPY data data
 
 RUN rm -rf \

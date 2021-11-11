@@ -387,6 +387,7 @@ def plot_plddt_legend(dpi=100):
     plt.axis(False)
     return plt
 
+
 def plot_msa_info(msa):
 
     """
@@ -582,7 +583,7 @@ def submit_2_step_job(
         job_queue=data_prep_queue,
         cpu=data_prep_cpu,
         mem=data_prep_mem,
-        db_path=db_path
+        db_path=db_path,
     )
 
     predict_response = submit_rf_predict_job(
@@ -602,6 +603,7 @@ def submit_2_step_job(
         f"Data prep job ID {data_prep_response['jobId']} and predict job ID {predict_response['jobId']} submitted"
     )
     return [data_prep_response, predict_response]
+
 
 def list_recent_jobs(job_queues, hrs_in_past=1):
 
@@ -623,24 +625,27 @@ def list_recent_jobs(job_queues, hrs_in_past=1):
                 }
             ],
         )
-        result = result + recent_queue_jobs['jobSummaryList']
-        
-    return(result)
+        result = result + recent_queue_jobs["jobSummaryList"]
+
+    return result
 
 
-def get_rf_job_info(cpu_queue="AWS-RoseTTAFold-CPU", gpu_queue="AWS-RoseTTAFold-GPU", hrs_in_past=1):
+def get_rf_job_info(
+    cpu_queue="AWS-RoseTTAFold-CPU", gpu_queue="AWS-RoseTTAFold-GPU", hrs_in_past=1
+):
 
     """
     Display information about recent AWS-RoseTTAFold jobs
     """
     from datetime import datetime
+
     batch_client = boto3.client("batch")
     recent_jobs = list_recent_jobs([cpu_queue, gpu_queue], hrs_in_past)
     recent_job_df = pd.DataFrame.from_dict(recent_jobs)
     detail_list = batch_client.describe_jobs(jobs=recent_job_df.jobId.to_list())
     list_of_lists = []
     for job in detail_list["jobs"]:
-        resource_dict={}
+        resource_dict = {}
         for resource in job["container"]["resourceRequirements"]:
             resource_dict[resource["type"]] = resource["value"]
         row = [
@@ -648,17 +653,48 @@ def get_rf_job_info(cpu_queue="AWS-RoseTTAFold-CPU", gpu_queue="AWS-RoseTTAFold-
             job["jobId"],
             job["jobQueue"],
             job["status"],
-            datetime.fromtimestamp(job["createdAt"]/1000),
-            datetime.fromtimestamp(job["startedAt"]/1000) if "startedAt" in job else "NaT",
-            datetime.fromtimestamp(job["stoppedAt"]/1000) if "stoppedAt" in job else "NaT",   
-            str(datetime.fromtimestamp(job["stoppedAt"]/1000) - datetime.fromtimestamp(job["startedAt"]/1000)) if "startedAt" in job and "stoppedAt" in job else "NaN",
-            (job["stoppedAt"]/1000) - (job["startedAt"]/1000) if "startedAt" in job and "stoppedAt" in job else "NaN",
+            datetime.fromtimestamp(job["createdAt"] / 1000),
+            datetime.fromtimestamp(job["startedAt"] / 1000)
+            if "startedAt" in job
+            else "NaT",
+            datetime.fromtimestamp(job["stoppedAt"] / 1000)
+            if "stoppedAt" in job
+            else "NaT",
+            str(
+                datetime.fromtimestamp(job["stoppedAt"] / 1000)
+                - datetime.fromtimestamp(job["startedAt"] / 1000)
+            )
+            if "startedAt" in job and "stoppedAt" in job
+            else "NaN",
+            (job["stoppedAt"] / 1000) - (job["startedAt"] / 1000)
+            if "startedAt" in job and "stoppedAt" in job
+            else "NaN",
             job["jobDefinition"],
-            job["container"]["logStreamName"] if "logStreamName" in job["container"] else "",
+            job["container"]["logStreamName"]
+            if "logStreamName" in job["container"]
+            else "",
             int(resource_dict["VCPU"]),
-            int(float(resource_dict["MEMORY"])/1000),
+            int(float(resource_dict["MEMORY"]) / 1000),
             int(resource_dict["GPU"]) if "GPU" in resource_dict else 0,
         ]
         list_of_lists.append(row)
 
-    return(pd.DataFrame(list_of_lists, columns=['jobName', 'jobId', 'jobQueue', 'status', 'createdAt', 'startedAt', 'stoppedAt', 'duration', 'duration_sec', 'jobDefinition', 'logStreamName', 'vCPUs', 'mem_GB', "GPUs"]))
+    return pd.DataFrame(
+        list_of_lists,
+        columns=[
+            "jobName",
+            "jobId",
+            "jobQueue",
+            "status",
+            "createdAt",
+            "startedAt",
+            "stoppedAt",
+            "duration",
+            "duration_sec",
+            "jobDefinition",
+            "logStreamName",
+            "vCPUs",
+            "mem_GB",
+            "GPUs",
+        ],
+    )
