@@ -594,6 +594,7 @@ Resources:
                       "-",
                       ["arn:aws:s3:::codepipeline", !Ref AWS::Region, "*"],
                     ]
+                  - !GetAtt ResultsS3.Arn
               - Effect: Allow
                 Action:
                   - codecommit:GitPull
