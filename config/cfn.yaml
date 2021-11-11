@@ -401,6 +401,8 @@ Resources:
     Type: AWS::FSx::FileSystem
     Properties:
       FileSystemType: "LUSTRE"
+      SecurityGroupIds:
+      - !GetAtt VPC.DefaultSecurityGroup
       StorageCapacity: 4800
       StorageType: "SSD"
       SubnetIds:
@@ -651,7 +653,6 @@ Resources:
         Location: !GetAtt RFCodeRepository.CloneUrlHttp
         Type: CODECOMMIT
       SourceVersion: refs/heads/main
-      Visibility: PRIVATE
       Tags:
         - Key: Name
           Value: !Join ["-", [!Ref Prefix, "codebuild-project"]]
@@ -1078,6 +1079,12 @@ Resources:
         PrivilegedMode: true
         Type: LINUX_CONTAINER
       ServiceRole: !GetAtt CodeBuildRole.Arn
+      VpcConfig:
+        SecurityGroupIds:
+          - !GetAtt VPC.DefaultSecurityGroup
+        Subnets:
+          - !Ref PrivateSubnet0
+        VpcId: !Ref VPC
       Tags:
         - Key: Name
           Value: !Join ["-", [!Ref Prefix, "codebuild-project"]]
