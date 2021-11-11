@@ -826,7 +826,7 @@ Resources:
                 Provider: CodeCommit
                 Version: 1
               Configuration:
-                RepositoryName: !Ref RFCodeRepository
+                RepositoryName: !GetAtt RFCodeRepository.Name
                 BranchName: main
                 PollForSourceChanges: "false"
               Namespace: SourceVariables
