@@ -26,9 +26,11 @@ session = boto3.session.Session()
 sm_session = sagemaker.session.Session()
 region = session.region_name
 role = sagemaker.get_execution_role()
+s3 = boto3.client("s3", region_name=region)
 
 
-def get_job_name(suffix=None):
+
+def create_job_name(suffix=None):
 
     """
     Define a simple job identifier
@@ -254,7 +256,7 @@ def read_pdb_renum(pdb_filename, Ls=None):
     return "".join(pdb_out)
 
 
-def show_pdb(
+def plot_pdb(
     pred_output_path,
     show_sidechains=False,
     show_mainchains=False,
@@ -697,4 +699,62 @@ def get_rf_job_info(
             "mem_GB",
             "GPUs",
         ],
-    )
+    ).sort_values(by="jobName", ascending=False)
+
+
+def display_msa(jobId, bucket):
+    """
+    Display the MSA plot in a Jupyter notebook cell
+    """
+
+    info = get_batch_job_info(jobId)
+
+    if info["status"] == "SUCCEEDED":
+        print(
+            f"Downloading MSA file from s3://{bucket}/{info['jobName']}/{info['jobName']}.msa0.a3m"
+        )
+        s3.download_file(
+            bucket,
+            f"{info['jobName']}/{info['jobName']}.msa0.a3m",
+            "data/alignment.msa",
+        )
+        msa_all = parse_a3m("data/alignment.msa")
+        plot_msa_info(msa_all)
+    else:
+        print(
+            f"Data prep job {info['jobId']} is in {info['status']} status. Please try again once the job has completed."
+        )
+
+
+def display_structure(jobId, bucket):
+    """
+    Display the predicted structure in a Jupyter notebook cell
+    """
+
+    info = get_batch_job_info(jobId)
+
+    if info["status"] == "SUCCEEDED":
+        print(
+            f"Downloading PDB file from s3://{bucket}/{info['jobName']}/{info['jobName']}.e2e.pdb"
+        )
+        s3.download_file(
+            bucket, f"{info['jobName']}/{info['jobName']}.e2e.pdb", "data/e2e.pdb"
+        )
+        color = "lDDT"  # @param ["chain", "lDDT", "rainbow"]
+        show_sidechains = False
+        show_mainchains = False
+        plot_pdb(
+            "data/e2e.pdb",
+            show_sidechains,
+            show_mainchains,
+            color,
+            chains=1,
+            vmin=0.5,
+            vmax=0.9,
+        ).show()
+        if color == "lDDT":
+            plot_plddt_legend().show()
+    else:
+        print(
+            f"{info['jobId']} is in {info['status']} status. Please try again once the job has completed."
+        )
