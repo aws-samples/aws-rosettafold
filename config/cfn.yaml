@@ -481,8 +481,6 @@ Resources:
               VolumeType: "gp2"
         IamInstanceProfile:
           Name: !Ref InstanceProfile
-        SecurityGroupIds:
-          - !GetAtt VPC.DefaultSecurityGroup
         TagSpecifications:
           - ResourceType: "instance"
             Tags:
@@ -525,6 +523,10 @@ Resources:
   RFCodeRepository:
     Type: AWS::CodeCommit::Repository
     Properties:
+      Code:
+        BranchName: "main"
+        S3: 
+          Bucket: aws-rosettafold-repo
       RepositoryDescription: Code for running RoseTTAFold on AWS
       RepositoryName: AWS-RoseTTAFold
       Tags:

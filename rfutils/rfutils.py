@@ -29,7 +29,6 @@ role = sagemaker.get_execution_role()
 s3 = boto3.client("s3", region_name=region)
 
 
-
 def create_job_name(suffix=None):
 
     """
