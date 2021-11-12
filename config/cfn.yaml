@@ -1034,57 +1034,57 @@ Resources:
   # Populate Filesystem
   ##################################################
 
-  DataPopulator:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: AWS-RoseTTAFold-Populate-File-System
-      Artifacts:
-        Type: NO_ARTIFACTS
-      Description: Populate the file system with ref data from a public S3 bucket
-      Source:
-        Type: NO_SOURCE
-        BuildSpec: |
-          version: 0.2
-          phases:
-            pre_build:
-              commands:
-                - echo Pre-build started on `date`
-                - echo Mounting FSx file system
-                - yum install -y amazon-linux-extras
-                - amazon-linux-extras install -y lustre2.10
-                - mkdir -p $FSX_DIRECTORY
-                - mount -t lustre FILE_SYSTEM_DNS@tcp:/$FSX_MOUNT_NAME $FSX_DIRECTORY
-                - echo Pre-build complete
-            build:
-              commands:
-                - echo Build started on `date`
-                - echo Copying ref files
-                - aws cli s3 cp s3://$REF_DATA_BUCKET_NAME ${fsx_directory} --recursive true
-                - echo Build complete
-      Environment:
-        ComputeType: BUILD_GENERAL1_MEDIUM
-        EnvironmentVariables:
-            - Name: FILE_SYSTEM_DNS
-              Value:  !GetAtt FSX.DNSName
-            - Name: REGION
-              Value: !Ref AWS::Region
-            - Name: FSX_DIRECTORY
-              Value: /fsx 
-            - Name: FSX_MOUNT_NAME
-              Value: !GetAtt FSX.LustreMountName    
-            - Name: REF_DATA_BUCKET_NAME
-              Value: aws-rosettafold-ref-data
-        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
-        ImagePullCredentialsType: CODEBUILD
-        PrivilegedMode: true
-        Type: LINUX_CONTAINER
-      ServiceRole: !GetAtt CodeBuildRole.Arn
-      VpcConfig:
-        SecurityGroupIds:
-          - !GetAtt VPC.DefaultSecurityGroup
-        Subnets:
-          - !Ref PrivateSubnet0
-        VpcId: !Ref VPC
-      Tags:
-        - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "codebuild-project"]]
+  # DataPopulator:
+  #   Type: AWS::CodeBuild::Project
+  #   Properties:
+  #     Name: AWS-RoseTTAFold-Populate-File-System
+  #     Artifacts:
+  #       Type: NO_ARTIFACTS
+  #     Description: Populate the file system with ref data from a public S3 bucket
+  #     Source:
+  #       Type: NO_SOURCE
+  #       BuildSpec: |
+  #         version: 0.2
+  #         phases:
+  #           pre_build:
+  #             commands:
+  #               - echo Pre-build started on `date`
+  #               - echo Mounting FSx file system
+  #               - yum install -y amazon-linux-extras
+  #               - amazon-linux-extras install -y lustre2.10
+  #               - mkdir -p $FSX_DIRECTORY
+  #               - mount -t lustre FILE_SYSTEM_DNS@tcp:/$FSX_MOUNT_NAME $FSX_DIRECTORY
+  #               - echo Pre-build complete
+  #           build:
+  #             commands:
+  #               - echo Build started on `date`
+  #               - echo Copying ref files
+  #               - aws cli s3 cp s3://$REF_DATA_BUCKET_NAME ${fsx_directory} --recursive true
+  #               - echo Build complete
+  #     Environment:
+  #       ComputeType: BUILD_GENERAL1_MEDIUM
+  #       EnvironmentVariables:
+  #           - Name: FILE_SYSTEM_DNS
+  #             Value:  !GetAtt FSX.DNSName
+  #           - Name: REGION
+  #             Value: !Ref AWS::Region
+  #           - Name: FSX_DIRECTORY
+  #             Value: /fsx 
+  #           - Name: FSX_MOUNT_NAME
+  #             Value: !GetAtt FSX.LustreMountName    
+  #           - Name: REF_DATA_BUCKET_NAME
+  #             Value: aws-rosettafold-ref-data
+  #       Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+  #       ImagePullCredentialsType: CODEBUILD
+  #       PrivilegedMode: true
+  #       Type: LINUX_CONTAINER
+  #     ServiceRole: !GetAtt CodeBuildRole.Arn
+  #     VpcConfig:
+  #       SecurityGroupIds:
+  #       - !GetAtt VPC.DefaultSecurityGroup
+  #       Subnets:
+  #         - !Ref PrivateSubnet0
+  #       VpcId: !Ref VPC
+  #     Tags:
+  #       - Key: Name
+  #         Value: !Join ["-", [!Ref Prefix, "codebuild-project"]]
