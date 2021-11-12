@@ -419,8 +419,8 @@ Resources:
         AutoImportPolicy: NEW
         DataCompressionType: "LZ4"
         DeploymentType: "PERSISTENT_1"
-        ExportPath: !Join ["", ["s3://", !Ref RefDataBucket]]
-        ImportPath: !Join ["", ["s3://", !Ref RefDataBucket]]
+        ExportPath: !Join ["", ["s3://", !Ref RefDataBucketName]]
+        ImportPath: !Join ["", ["s3://", !Ref RefDataBucketName]]
         PerUnitStorageThroughput: 50
       Tags:
         - Key: Name
