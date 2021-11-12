@@ -383,17 +383,6 @@ Resources:
   S3Endpoint:
     Type: "AWS::EC2::VPCEndpoint"
     Properties:
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal: "*"
-            Action:
-              - "s3:GetObject"
-              - "s3:PutObject"
-              - "s3:DeleteObject"
-            Resource:
-              - !GetAtt ResultsS3.Arn
       RouteTableIds:
         - !Ref PublicRouteTable
         - !Ref PrivateRouteTable0
@@ -445,24 +434,10 @@ Resources:
             Action:
               - "sts:AssumeRole"
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
       Path: /
-      Policies:
-        - PolicyName: limitedS3
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:ListBucket
-                Resource: !GetAtt ResultsS3.Arn
-              - Effect: Allow
-                Action:
-                  - s3:PutObject
-                  - s3:GettObject
-                  - s3:DeleteObject
-                Resource: !Join ["/", [!GetAtt ResultsS3.Arn, "*"]]
       Tags:
         - Key: Name
           Value: !Join ["-", [!Ref Prefix, "instance-role"]]
