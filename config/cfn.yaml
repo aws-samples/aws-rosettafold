@@ -871,6 +871,8 @@ Resources:
           Version: $Latest
         MaxvCpus: 256
         MinvCpus: 0
+        SecurityGroupIds:
+          - !GetAtt VPC.DefaultSecurityGroup
         Subnets:
           - Ref: PrivateSubnet0
           - Ref: PrivateSubnet1
@@ -897,6 +899,8 @@ Resources:
           Version: $Latest
         MaxvCpus: 256
         MinvCpus: 0
+        SecurityGroupIds:
+          - !GetAtt VPC.DefaultSecurityGroup        
         Subnets:
           - Ref: PrivateSubnet0
           - Ref: PrivateSubnet1
