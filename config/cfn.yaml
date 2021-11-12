@@ -12,6 +12,10 @@ Parameters:
     Description: Name of a S3 bucket containing protein databases and model weights. This bucket will be mounted to the FSx Lustre filesystem.
     Type: String
     Default: aws-rosettafold-ref-data
+  RepoBucketName:
+    Description: Name of a S3 bucket containing ths AWS-RoseTTAFold repository. This will be used dueing infrastructure creation to populate a CodeCommit repository.
+    Type: String
+    Default: aws-rosettafold-repo
 
 Resources:
   ##################################################
@@ -530,7 +534,7 @@ Resources:
       Code:
         BranchName: "main"
         S3: 
-          Bucket: aws-rosettafold-repo
+          Bucket: !Ref RepoBucketName
           Key: aws-rosettafold.zip
       RepositoryDescription: Code for running RoseTTAFold on AWS
       RepositoryName: AWS-RoseTTAFold
