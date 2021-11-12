@@ -408,8 +408,11 @@ Resources:
       SubnetIds:
         - !Ref PrivateSubnet0
       LustreConfiguration:
+        AutoImportPolicy: NEW
         DataCompressionType: "LZ4"
         DeploymentType: "PERSISTENT_1"
+        ExportPath: s3://aws-rosettafold-ref-data
+        ImportPath: s3://aws-rosettafold-ref-data
         PerUnitStorageThroughput: 50
       Tags:
         - Key: Name
@@ -478,7 +481,7 @@ Resources:
               VolumeType: "gp2"
         IamInstanceProfile:
           Name: !Ref InstanceProfile
-        SecurityGroups:
+        SecurityGroupIds:
           - !GetAtt VPC.DefaultSecurityGroup
         TagSpecifications:
           - ResourceType: "instance"
