@@ -10,6 +10,7 @@ import boto3
 from datetime import datetime
 import json
 import matplotlib.pyplot as plt
+from matplotlib import colors
 import numpy as np
 import os
 import pandas as pd
@@ -17,6 +18,7 @@ import py3Dmol
 from re import sub
 import sagemaker
 import string
+from string import ascii_uppercase,ascii_lowercase
 from time import sleep
 import uuid
 
@@ -27,6 +29,17 @@ sm_session = sagemaker.session.Session()
 region = session.region_name
 role = sagemaker.get_execution_role()
 s3 = boto3.client("s3", region_name=region)
+
+pymol_color_list = ["#33ff33","#00ffff","#ff33cc","#ffff00","#ff9999","#e5e5e5","#7f7fff","#ff7f00",
+                    "#7fff7f","#199999","#ff007f","#ffdd5e","#8c3f99","#b2b2b2","#007fff","#c4b200",
+                    "#8cb266","#00bfbf","#b27f7f","#fcd1a5","#ff7f7f","#ffbfdd","#7fffff","#ffff7f",
+                    "#00ff7f","#337fcc","#d8337f","#bfff3f","#ff7fff","#d8d8ff","#3fffbf","#b78c4c",
+                    "#339933","#66b2b2","#ba8c84","#84bf00","#b24c66","#7f7f7f","#3f3fa5","#a5512b"]
+
+pymol_cmap = colors.ListedColormap(pymol_color_list)
+alphabet_list = list(ascii_uppercase+ascii_lowercase)
+
+aatypes = set('ACDEFGHIKLMNPQRSTVWY')
 
 
 def create_job_name(suffix=None):
@@ -74,7 +87,7 @@ def submit_rf_e2e_job(
     mem=96,
     gpu=2,
     db_path="/fsx",
-    weigths_path="/fsx",
+    weights_path="/fsx",
 ):
 
     """
