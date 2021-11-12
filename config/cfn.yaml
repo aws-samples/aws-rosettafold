@@ -8,10 +8,10 @@ Parameters:
     Description: The prefix to use for all resource tags.
     Type: String
     Default: "AWS-RF"
-  RefDataBucket:
-    Description: S3 bucket containing protein databases and model weights. This bucket will be mounted to the FSx Lustre filesystem.
+  RefDataBucketName:
+    Description: Name of a S3 bucket containing protein databases and model weights. This bucket will be mounted to the FSx Lustre filesystem.
     Type: String
-    Default: s3://aws-rosettafold-ref-data
+    Default: aws-rosettafold-ref-data
 
 Resources:
   ##################################################
@@ -415,8 +415,8 @@ Resources:
         AutoImportPolicy: NEW
         DataCompressionType: "LZ4"
         DeploymentType: "PERSISTENT_1"
-        ExportPath: !Ref RefDataBucket
-        ImportPath: !Ref RefDataBucket
+        ExportPath: !Join ["", ["s3://", !Ref RefDataBucket]]
+        ImportPath: !Join ["", ["s3://", !Ref RefDataBucket]]
         PerUnitStorageThroughput: 50
       Tags:
         - Key: Name
@@ -531,7 +531,7 @@ Resources:
         BranchName: "main"
         S3: 
           Bucket: aws-rosettafold-repo
-          Key: MyKey
+          Key: aws-rosettafold.zip
       RepositoryDescription: Code for running RoseTTAFold on AWS
       RepositoryName: AWS-RoseTTAFold
       Tags:
