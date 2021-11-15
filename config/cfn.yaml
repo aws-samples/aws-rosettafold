@@ -1,13 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  Creates a stack for running RoseTTAFold on AWS Batch (extended from
-  VPC_with_PublicIPs_And_DNS.template sample)
+  Creates a stack for running RoseTTAFold on AWS Batch.
 
 Parameters:
-  Prefix:
-    Description: The prefix to use for all resource tags.
-    Type: String
-    Default: "AWS-RF"
   RefDataBucketName:
     Description: Name of a S3 bucket containing protein databases and model weights. This bucket will be mounted to the FSx Lustre filesystem.
     Type: String
@@ -29,11 +24,11 @@ Resources:
       CidrBlock: "10.0.0.0/16"
       Tags:
         - Key: Application
-          Value: !Ref "AWS::StackName"
+          Value: AWS-RoseTTAFold
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "VPC"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "VPC"]]
 
   PublicSubnet0:
     Type: "AWS::EC2::Subnet"
@@ -47,12 +42,11 @@ Resources:
       MapPublicIpOnLaunch: "true"
       Tags:
         - Key: Application
-          Value: !Ref "AWS::StackName"
+          Value: AWS-RoseTTAFold
         - Key: Network
           Value: Public
         - Key: Name
-          Value:
-            !Join ["-", [!Ref Prefix, "public", !Select [0, Fn::GetAZs: ""]]]
+          Value: !Join ["-", [!Ref AWS::StackName, "public", !Select [0, Fn::GetAZs: ""]]]
 
   PublicSubnet1:
     Type: "AWS::EC2::Subnet"
@@ -66,13 +60,11 @@ Resources:
       MapPublicIpOnLaunch: "true"
       Tags:
         - Key: Application
-          Value:
-            Ref: "AWS::StackName"
+          Value: AWS-RoseTTAFold
         - Key: Network
           Value: Public
         - Key: Name
-          Value:
-            !Join ["-", [!Ref Prefix, "public", !Select [1, Fn::GetAZs: ""]]]
+          Value: !Join ["-", [!Ref AWS::StackName, "public", !Select [1, Fn::GetAZs: ""]]]
 
   PublicSubnet2:
     Type: "AWS::EC2::Subnet"
@@ -86,13 +78,11 @@ Resources:
       MapPublicIpOnLaunch: "true"
       Tags:
         - Key: Application
-          Value:
-            Ref: "AWS::StackName"
+          Value: AWS-RoseTTAFold
         - Key: Network
           Value: Public
         - Key: Name
-          Value:
-            !Join ["-", [!Ref Prefix, "public", !Select [2, Fn::GetAZs: ""]]]
+          Value: !Join ["-", [!Ref AWS::StackName, "public", !Select [2, Fn::GetAZs: ""]]]
 
   PrivateSubnet0:
     Type: "AWS::EC2::Subnet"
@@ -106,13 +96,11 @@ Resources:
           - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
       Tags:
         - Key: Application
-          Value:
-            Ref: "AWS::StackName"
+          Value: AWS-RoseTTAFold
         - Key: Network
           Value: Private
         - Key: Name
-          Value:
-            !Join ["-", [!Ref Prefix, "private", !Select [0, Fn::GetAZs: ""]]]
+          Value: !Join ["-", [!Ref AWS::StackName, "public", !Select [0, Fn::GetAZs: ""]]]
 
   PrivateSubnet1:
     Type: "AWS::EC2::Subnet"
@@ -126,13 +114,11 @@ Resources:
           - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
       Tags:
         - Key: Application
-          Value:
-            Ref: "AWS::StackName"
+          Value: AWS-RoseTTAFold
         - Key: Network
           Value: Private
         - Key: Name
-          Value:
-            !Join ["-", [!Ref Prefix, "private", !Select [1, Fn::GetAZs: ""]]]
+          Value: !Join ["-", [!Ref AWS::StackName, "public", !Select [1, Fn::GetAZs: ""]]]
 
   PrivateSubnet2:
     Type: "AWS::EC2::Subnet"
@@ -146,25 +132,22 @@ Resources:
           - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
       Tags:
         - Key: Application
-          Value:
-            Ref: "AWS::StackName"
+          Value: AWS-RoseTTAFold
         - Key: Network
-          Value: Private
+          Value: Public
         - Key: Name
-          Value:
-            !Join ["-", [!Ref Prefix, "private", !Select [2, Fn::GetAZs: ""]]]
+          Value: !Join ["-", [!Ref AWS::StackName, "public", !Select [2, Fn::GetAZs: ""]]]
 
   InternetGateway:
     Type: "AWS::EC2::InternetGateway"
     Properties:
       Tags:
         - Key: Application
-          Value:
-            Ref: "AWS::StackName"
+          Value: AWS-RoseTTAFold
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "IGW"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "IGW"]]
 
   GatewayToInternet:
     Type: "AWS::EC2::VPCGatewayAttachment"
@@ -181,12 +164,11 @@ Resources:
         Ref: VPC
       Tags:
         - Key: Application
-          Value:
-            Ref: "AWS::StackName"
+          Value: AWS-RoseTTAFold
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "public-route-table"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "public-route-table"]]
 
   PublicRoute:
     Type: "AWS::EC2::Route"
@@ -227,24 +209,30 @@ Resources:
     Properties:
       Domain: vpc
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold        
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "elastic-ip-0"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "elastic-ip-0"]]
 
   ElasticIP1:
     Type: "AWS::EC2::EIP"
     Properties:
       Domain: vpc
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "elastic-ip-1"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "elastic-ip-1"]]
 
   ElasticIP2:
     Type: "AWS::EC2::EIP"
     Properties:
       Domain: vpc
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold        
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "elastic-ip-2"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "elastic-ip-2"]]
 
   NATGateway0:
     Type: "AWS::EC2::NatGateway"
@@ -256,8 +244,10 @@ Resources:
       SubnetId:
         Ref: PublicSubnet0
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold        
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "NATGateway-0"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "NAT-gateway-0"]]
 
   NATGateway1:
     Type: "AWS::EC2::NatGateway"
@@ -269,8 +259,10 @@ Resources:
       SubnetId:
         Ref: PublicSubnet1
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold        
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "NATGateway-1"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "NAT-gateway-1"]]
 
   NATGateway2:
     Type: "AWS::EC2::NatGateway"
@@ -282,8 +274,10 @@ Resources:
       SubnetId:
         Ref: PublicSubnet2
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold        
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "NATGateway-2"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "NAT-gateway-2"]]
 
   PrivateRouteTable0:
     Type: "AWS::EC2::RouteTable"
@@ -291,8 +285,10 @@ Resources:
       VpcId:
         Ref: VPC
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold        
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "private-route-table-0"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "private-route-table-0"]]
 
   PrivateRouteTable1:
     Type: "AWS::EC2::RouteTable"
@@ -300,8 +296,10 @@ Resources:
       VpcId:
         Ref: VPC
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold        
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "private-route-table-1"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "private-route-table-1"]]
 
   PrivateRouteTable2:
     Type: "AWS::EC2::RouteTable"
@@ -309,8 +307,10 @@ Resources:
       VpcId:
         Ref: VPC
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold        
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "private-route-table-2"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "private-route-table-2"]]
 
   PrivateRouteToInternet0:
     Type: "AWS::EC2::Route"
@@ -370,14 +370,16 @@ Resources:
   ResultsS3:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "aws-rosettafold-${AWS::AccountId}-${AWS::Region}"
+      BucketName: !Join ["-", [!Ref AWS::StackName, !Ref AWS::AccountId, !Ref AWS::Region]]
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold        
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "-s3"]]
+          Value: !Join ["-", [!Ref AWS::StackName, !Ref AWS::AccountId, !Ref AWS::Region]]
     DeletionPolicy: Delete
 
   S3Endpoint:
@@ -400,7 +402,7 @@ Resources:
       FileSystemType: "LUSTRE"
       SecurityGroupIds:
       - !GetAtt VPC.DefaultSecurityGroup
-      StorageCapacity: 4800
+      StorageCapacity: 1200
       StorageType: "SSD"
       SubnetIds:
         - !Ref PrivateSubnet0
@@ -412,8 +414,10 @@ Resources:
         ImportPath: !Join ["", ["s3://", !Ref RefDataBucketName]]
         PerUnitStorageThroughput: 50
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold             
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "Fsx-lustre"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "FSx-Lustre"]]
 
   ##################################################
   # EC2 Launch Template
@@ -422,7 +426,7 @@ Resources:
   RFInstanceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join ["-", [!Ref Prefix, "instance-role"]]
+      RoleName: !Join ["-", [!Ref AWS::StackName, "instance-role"]]
       Description: "Required service policies to support running RoseTTAFold on AWS Batch"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -439,13 +443,15 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
       Path: /
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold             
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "instance-role"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "instance-role"]]
 
   InstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
-      InstanceProfileName: !Join ["-", [!Ref Prefix, "instance-profile"]]
+      InstanceProfileName: !Join ["-", [!Ref AWS::StackName, "instance-profile"]]
       Path: /
       Roles:
         - !Ref RFInstanceRole
@@ -453,7 +459,7 @@ Resources:
   InstanceLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
-      LaunchTemplateName: !Join ["-", [!Ref Prefix, "ec2-launch-template"]]
+      LaunchTemplateName: !Join ["-", [!Ref AWS::StackName, "ec2-launch-template"]]
       LaunchTemplateData:
         BlockDeviceMappings:
           - DeviceName: "/dev/xvda"
@@ -467,8 +473,10 @@ Resources:
         TagSpecifications:
           - ResourceType: "instance"
             Tags:
+              - Key: Application
+                Value: AWS-RoseTTAFold             
               - Key: Name
-                Value: !Join ["-", [!Ref Prefix, "EC2-instance"]]
+                Value: !Join ["-", [!Ref AWS::StackName, "ec2"]]
         UserData:
           Fn::Base64:
             Fn::Join:
@@ -514,8 +522,10 @@ Resources:
       RepositoryDescription: Code for running RoseTTAFold on AWS
       RepositoryName: AWS-RoseTTAFold
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold             
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "code-repository"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "code-repo"]]
 
   RFContainerRegistry:
     Type: AWS::ECR::Repository
@@ -524,13 +534,15 @@ Resources:
         EncryptionType: AES256
       RepositoryName: aws-rosettafold
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold             
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "container-repository"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "container-repo"]]
 
   CodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join ["-", [!Ref Prefix, "codebuild-role"]]
+      RoleName: !Join ["-", [!Ref AWS::StackName, "codebuild-role"]]
       Description: "Required service policies to support building AWS-RoseTTAFold container"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -611,8 +623,10 @@ Resources:
                         ],
                       ]
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold             
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "instance-role"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "codebuild-role"]]
 
   RFCodeBuildProject:
     Type: AWS::CodeBuild::Project
@@ -643,13 +657,15 @@ Resources:
         Type: CODECOMMIT
       SourceVersion: refs/heads/main
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold             
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "codebuild-project"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "codebuild-project"]]
 
   CodePipelineRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join ["-", [!Ref Prefix, "codepipeline-role"]]
+      RoleName: !Join ["-", [!Ref AWS::StackName, "codepipeline-role"]]
       Description: "Required service policies to support running AWS-RoseTTAFold build pipeline"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -787,8 +803,10 @@ Resources:
                   - appconfig:GetDeployment
                 Resource: "*"
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold              
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "instance-role"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "instance-role"]]
 
   RFCodePipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -835,8 +853,10 @@ Resources:
               Region: !Ref AWS::Region
               RunOrder: 2
       Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold              
         - Key: Name
-          Value: !Join ["-", [!Ref Prefix, "code-pipeline"]]
+          Value: !Join ["-", [!Ref AWS::StackName, "code-pipeline"]]
 
   ##################################################
   # Batch Environment
@@ -846,7 +866,7 @@ Resources:
     Type: AWS::Batch::ComputeEnvironment
     Properties:
       ComputeEnvironmentName:
-        !Join ["-", [!Ref Prefix, "compute-environment-cpu"]]
+        !Join ["-", [!Ref AWS::StackName, "compute-environment-cpu"]]
       ComputeResources:
         AllocationStrategy: BEST_FIT_PROGRESSIVE
         InstanceRole: !Ref InstanceProfile
@@ -867,19 +887,19 @@ Resources:
       State: ENABLED
       Type: MANAGED
       Tags:
-        Name: !Join ["-", [!Ref Prefix, "gpu-compute-environment"]]
+        Application: AWS-RoseTTAFold      
+        Name: !Join ["-", [!Ref AWS::StackName, "gpu-compute-environment"]]
 
   GPUComputeEnvironment:
     Type: AWS::Batch::ComputeEnvironment
     Properties:
       ComputeEnvironmentName:
-        !Join ["-", [!Ref Prefix, "compute-environment-gpu"]]
+        !Join ["-", [!Ref AWS::StackName, "compute-environment-gpu"]]
       ComputeResources:
         AllocationStrategy: BEST_FIT_PROGRESSIVE
         InstanceRole: !Ref InstanceProfile
         InstanceTypes:
           - g4dn
-          - p3
         LaunchTemplate:
           LaunchTemplateId: !Ref InstanceLaunchTemplate
           Version: $Latest
@@ -895,7 +915,8 @@ Resources:
       State: ENABLED
       Type: MANAGED
       Tags:
-        Name: !Join ["-", [!Ref Prefix, "cpu-compute-environment"]]
+        Application: AWS-RoseTTAFold      
+        Name: !Join ["-", [!Ref AWS::StackName, "gpu-compute-environment"]]
 
   CPUJobQueue:
     Type: AWS::Batch::JobQueue
@@ -903,11 +924,12 @@ Resources:
       ComputeEnvironmentOrder:
         - ComputeEnvironment: !Ref CPUComputeEnvironment
           Order: 1
-      JobQueueName: !Join ["-", [!Ref Prefix, "cpu-job-queue"]]
+      JobQueueName: !Join ["-", [!Ref AWS::StackName, "cpu-job-queue"]]
       Priority: 10
       State: ENABLED
       Tags:
-        Name: !Join ["-", [!Ref Prefix, "cpu-job-queue"]]
+        Application: AWS-RoseTTAFold      
+        Name: !Join ["-", [!Ref AWS::StackName, "cpu-job-queue"]]
 
   GPUJobQueue:
     Type: AWS::Batch::JobQueue
@@ -915,11 +937,12 @@ Resources:
       ComputeEnvironmentOrder:
         - ComputeEnvironment: !Ref GPUComputeEnvironment
           Order: 1
-      JobQueueName: !Join ["-", [!Ref Prefix, "gpu-job-queue"]]
+      JobQueueName: !Join ["-", [!Ref AWS::StackName, "gpu-job-queue"]]
       Priority: 10
       State: ENABLED
       Tags:
-        Name: !Join ["-", [!Ref Prefix, "gpu-job-queue"]]
+        Application: AWS-RoseTTAFold      
+        Name: !Join ["-", [!Ref AWS::StackName, "gpu-job-queue"]]
 
   CPUJobDefinition:
     Type: AWS::Batch::JobDefinition
@@ -966,7 +989,8 @@ Resources:
       RetryStrategy:
         Attempts: 2
       Tags:
-        Name: !Join ["-", [!Ref Prefix, "cpu-job-definition"]]
+        Application: AWS-RoseTTAFold      
+        Name: !Join ["-", [!Ref AWS::StackName, "cpu-job-definition"]]
       Type: container
 
   GPUJobDefinition:
@@ -1020,64 +1044,6 @@ Resources:
       RetryStrategy:
         Attempts: 2
       Tags:
-        Name: !Join ["-", [!Ref Prefix, "gpu-job-definition"]]
+        Application: AWS-RoseTTAFold      
+        Name: !Join ["-", [!Ref AWS::StackName, "gpu-job-definition"]]
       Type: container
-
-  ##################################################
-  # Populate Filesystem
-  ##################################################
-
-  # DataPopulator:
-  #   Type: AWS::CodeBuild::Project
-  #   Properties:
-  #     Name: AWS-RoseTTAFold-Populate-File-System
-  #     Artifacts:
-  #       Type: NO_ARTIFACTS
-  #     Description: Populate the file system with ref data from a public S3 bucket
-  #     Source:
-  #       Type: NO_SOURCE
-  #       BuildSpec: |
-  #         version: 0.2
-  #         phases:
-  #           pre_build:
-  #             commands:
-  #               - echo Pre-build started on `date`
-  #               - echo Mounting FSx file system
-  #               - yum install -y amazon-linux-extras
-  #               - amazon-linux-extras install -y lustre2.10
-  #               - mkdir -p $FSX_DIRECTORY
-  #               - mount -t lustre FILE_SYSTEM_DNS@tcp:/$FSX_MOUNT_NAME $FSX_DIRECTORY
-  #               - echo Pre-build complete
-  #           build:
-  #             commands:
-  #               - echo Build started on `date`
-  #               - echo Copying ref files
-  #               - aws cli s3 cp s3://$REF_DATA_BUCKET_NAME ${fsx_directory} --recursive true
-  #               - echo Build complete
-  #     Environment:
-  #       ComputeType: BUILD_GENERAL1_MEDIUM
-  #       EnvironmentVariables:
-  #           - Name: FILE_SYSTEM_DNS
-  #             Value:  !GetAtt FSX.DNSName
-  #           - Name: REGION
-  #             Value: !Ref AWS::Region
-  #           - Name: FSX_DIRECTORY
-  #             Value: /fsx 
-  #           - Name: FSX_MOUNT_NAME
-  #             Value: !GetAtt FSX.LustreMountName    
-  #           - Name: REF_DATA_BUCKET_NAME
-  #             Value: aws-rosettafold-ref-data
-  #       Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
-  #       ImagePullCredentialsType: CODEBUILD
-  #       PrivilegedMode: true
-  #       Type: LINUX_CONTAINER
-  #     ServiceRole: !GetAtt CodeBuildRole.Arn
-  #     VpcConfig:
-  #       SecurityGroupIds:
-  #       - !GetAtt VPC.DefaultSecurityGroup
-  #       Subnets:
-  #         - !Ref PrivateSubnet0
-  #       VpcId: !Ref VPC
-  #     Tags:
-  #       - Key: Name
-  #         Value: !Join ["-", [!Ref Prefix, "codebuild-project"]]
