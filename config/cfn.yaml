@@ -55,41 +55,41 @@ Resources:
         - Key: Name
           Value: !Join ["-", [!Ref ResourcePrefix, "public", !Select [0, Fn::GetAZs: ""]]]
 
-  PublicSubnet1:
-    Type: "AWS::EC2::Subnet"
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [1, Fn::GetAZs: ""]
-      CidrBlock:
-        Fn::Select:
-          - 1
-          - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
-      MapPublicIpOnLaunch: "true"
-      Tags:
-        - Key: Application
-          Value: AWS-RoseTTAFold
-        - Key: Network
-          Value: Public
-        - Key: Name
-          Value: !Join ["-", [!Ref ResourcePrefix, "public", !Select [1, Fn::GetAZs: ""]]]
+  # PublicSubnet1:
+  #   Type: "AWS::EC2::Subnet"
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     AvailabilityZone: !Select [1, Fn::GetAZs: ""]
+  #     CidrBlock:
+  #       Fn::Select:
+  #         - 1
+  #         - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
+  #     MapPublicIpOnLaunch: "true"
+  #     Tags:
+  #       - Key: Application
+  #         Value: AWS-RoseTTAFold
+  #       - Key: Network
+  #         Value: Public
+  #       - Key: Name
+  #         Value: !Join ["-", [!Ref ResourcePrefix, "public", !Select [1, Fn::GetAZs: ""]]]
 
-  PublicSubnet2:
-    Type: "AWS::EC2::Subnet"
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [1, Fn::GetAZs: ""]
-      CidrBlock:
-        Fn::Select:
-          - 2
-          - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
-      MapPublicIpOnLaunch: "true"
-      Tags:
-        - Key: Application
-          Value: AWS-RoseTTAFold
-        - Key: Network
-          Value: Public
-        - Key: Name
-          Value: !Join ["-", [!Ref ResourcePrefix, "public", !Select [2, Fn::GetAZs: ""]]]
+  # PublicSubnet2:
+  #   Type: "AWS::EC2::Subnet"
+  #   Properties:
+  #     VpcId: !Ref VPC
+  #     AvailabilityZone: !Select [1, Fn::GetAZs: ""]
+  #     CidrBlock:
+  #       Fn::Select:
+  #         - 2
+  #         - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
+  #     MapPublicIpOnLaunch: "true"
+  #     Tags:
+  #       - Key: Application
+  #         Value: AWS-RoseTTAFold
+  #       - Key: Network
+  #         Value: Public
+  #       - Key: Name
+  #         Value: !Join ["-", [!Ref ResourcePrefix, "public", !Select [2, Fn::GetAZs: ""]]]
 
   PrivateSubnet0:
     Type: "AWS::EC2::Subnet"
@@ -109,41 +109,41 @@ Resources:
         - Key: Name
           Value: !Join ["-", [!Ref ResourcePrefix, "public", !Select [0, Fn::GetAZs: ""]]]
 
-  PrivateSubnet1:
-    Type: "AWS::EC2::Subnet"
-    Properties:
-      VpcId:
-        Ref: VPC
-      AvailabilityZone: !Select [1, Fn::GetAZs: ""]
-      CidrBlock:
-        Fn::Select:
-          - 4
-          - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
-      Tags:
-        - Key: Application
-          Value: AWS-RoseTTAFold
-        - Key: Network
-          Value: Private
-        - Key: Name
-          Value: !Join ["-", [!Ref ResourcePrefix, "public", !Select [1, Fn::GetAZs: ""]]]
+  # PrivateSubnet1:
+  #   Type: "AWS::EC2::Subnet"
+  #   Properties:
+  #     VpcId:
+  #       Ref: VPC
+  #     AvailabilityZone: !Select [1, Fn::GetAZs: ""]
+  #     CidrBlock:
+  #       Fn::Select:
+  #         - 4
+  #         - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
+  #     Tags:
+  #       - Key: Application
+  #         Value: AWS-RoseTTAFold
+  #       - Key: Network
+  #         Value: Private
+  #       - Key: Name
+  #         Value: !Join ["-", [!Ref ResourcePrefix, "public", !Select [1, Fn::GetAZs: ""]]]
 
-  PrivateSubnet2:
-    Type: "AWS::EC2::Subnet"
-    Properties:
-      VpcId:
-        Ref: VPC
-      AvailabilityZone: !Select [2, Fn::GetAZs: ""]
-      CidrBlock:
-        Fn::Select:
-          - 5
-          - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
-      Tags:
-        - Key: Application
-          Value: AWS-RoseTTAFold
-        - Key: Network
-          Value: Public
-        - Key: Name
-          Value: !Join ["-", [!Ref ResourcePrefix, "public", !Select [2, Fn::GetAZs: ""]]]
+  # PrivateSubnet2:
+  #   Type: "AWS::EC2::Subnet"
+  #   Properties:
+  #     VpcId:
+  #       Ref: VPC
+  #     AvailabilityZone: !Select [2, Fn::GetAZs: ""]
+  #     CidrBlock:
+  #       Fn::Select:
+  #         - 5
+  #         - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
+  #     Tags:
+  #       - Key: Application
+  #         Value: AWS-RoseTTAFold
+  #       - Key: Network
+  #         Value: Public
+  #       - Key: Name
+  #         Value: !Join ["-", [!Ref ResourcePrefix, "public", !Select [2, Fn::GetAZs: ""]]]
 
   InternetGateway:
     Type: "AWS::EC2::InternetGateway"
@@ -195,21 +195,21 @@ Resources:
       RouteTableId:
         Ref: PublicRouteTable
 
-  PublicSubnetRouteTableAssociation1:
-    Type: "AWS::EC2::SubnetRouteTableAssociation"
-    Properties:
-      SubnetId:
-        Ref: PublicSubnet1
-      RouteTableId:
-        Ref: PublicRouteTable
+  # PublicSubnetRouteTableAssociation1:
+  #   Type: "AWS::EC2::SubnetRouteTableAssociation"
+  #   Properties:
+  #     SubnetId:
+  #       Ref: PublicSubnet1
+  #     RouteTableId:
+  #       Ref: PublicRouteTable
 
-  PublicSubnetRouteTableAssociation2:
-    Type: "AWS::EC2::SubnetRouteTableAssociation"
-    Properties:
-      SubnetId:
-        Ref: PublicSubnet2
-      RouteTableId:
-        Ref: PublicRouteTable
+  # PublicSubnetRouteTableAssociation2:
+  #   Type: "AWS::EC2::SubnetRouteTableAssociation"
+  #   Properties:
+  #     SubnetId:
+  #       Ref: PublicSubnet2
+  #     RouteTableId:
+  #       Ref: PublicRouteTable
 
   ElasticIP0:
     Type: "AWS::EC2::EIP"
@@ -221,25 +221,25 @@ Resources:
         - Key: Name
           Value: !Join ["-", [!Ref ResourcePrefix, "elastic-ip-0"]]
 
-  ElasticIP1:
-    Type: "AWS::EC2::EIP"
-    Properties:
-      Domain: vpc
-      Tags:
-        - Key: Application
-          Value: AWS-RoseTTAFold
-        - Key: Name
-          Value: !Join ["-", [!Ref ResourcePrefix, "elastic-ip-1"]]
+  # ElasticIP1:
+  #   Type: "AWS::EC2::EIP"
+  #   Properties:
+  #     Domain: vpc
+  #     Tags:
+  #       - Key: Application
+  #         Value: AWS-RoseTTAFold
+  #       - Key: Name
+  #         Value: !Join ["-", [!Ref ResourcePrefix, "elastic-ip-1"]]
 
-  ElasticIP2:
-    Type: "AWS::EC2::EIP"
-    Properties:
-      Domain: vpc
-      Tags:
-        - Key: Application
-          Value: AWS-RoseTTAFold        
-        - Key: Name
-          Value: !Join ["-", [!Ref ResourcePrefix, "elastic-ip-2"]]
+  # ElasticIP2:
+  #   Type: "AWS::EC2::EIP"
+  #   Properties:
+  #     Domain: vpc
+  #     Tags:
+  #       - Key: Application
+  #         Value: AWS-RoseTTAFold        
+  #       - Key: Name
+  #         Value: !Join ["-", [!Ref ResourcePrefix, "elastic-ip-2"]]
 
   NATGateway0:
     Type: "AWS::EC2::NatGateway"
@@ -256,35 +256,35 @@ Resources:
         - Key: Name
           Value: !Join ["-", [!Ref ResourcePrefix, "NAT-gateway-0"]]
 
-  NATGateway1:
-    Type: "AWS::EC2::NatGateway"
-    Properties:
-      AllocationId:
-        "Fn::GetAtt":
-          - ElasticIP1
-          - AllocationId
-      SubnetId:
-        Ref: PublicSubnet1
-      Tags:
-        - Key: Application
-          Value: AWS-RoseTTAFold        
-        - Key: Name
-          Value: !Join ["-", [!Ref ResourcePrefix, "NAT-gateway-1"]]
+  # NATGateway1:
+  #   Type: "AWS::EC2::NatGateway"
+  #   Properties:
+  #     AllocationId:
+  #       "Fn::GetAtt":
+  #         - ElasticIP1
+  #         - AllocationId
+  #     SubnetId:
+  #       Ref: PublicSubnet1
+  #     Tags:
+  #       - Key: Application
+  #         Value: AWS-RoseTTAFold        
+  #       - Key: Name
+  #         Value: !Join ["-", [!Ref ResourcePrefix, "NAT-gateway-1"]]
 
-  NATGateway2:
-    Type: "AWS::EC2::NatGateway"
-    Properties:
-      AllocationId:
-        "Fn::GetAtt":
-          - ElasticIP2
-          - AllocationId
-      SubnetId:
-        Ref: PublicSubnet2
-      Tags:
-        - Key: Application
-          Value: AWS-RoseTTAFold        
-        - Key: Name
-          Value: !Join ["-", [!Ref ResourcePrefix, "NAT-gateway-2"]]
+  # NATGateway2:
+  #   Type: "AWS::EC2::NatGateway"
+  #   Properties:
+  #     AllocationId:
+  #       "Fn::GetAtt":
+  #         - ElasticIP2
+  #         - AllocationId
+  #     SubnetId:
+  #       Ref: PublicSubnet2
+  #     Tags:
+  #       - Key: Application
+  #         Value: AWS-RoseTTAFold        
+  #       - Key: Name
+  #         Value: !Join ["-", [!Ref ResourcePrefix, "NAT-gateway-2"]]
 
   PrivateRouteTable0:
     Type: "AWS::EC2::RouteTable"
@@ -297,27 +297,27 @@ Resources:
         - Key: Name
           Value: !Join ["-", [!Ref ResourcePrefix, "private-route-table-0"]]
 
-  PrivateRouteTable1:
-    Type: "AWS::EC2::RouteTable"
-    Properties:
-      VpcId:
-        Ref: VPC
-      Tags:
-        - Key: Application
-          Value: AWS-RoseTTAFold        
-        - Key: Name
-          Value: !Join ["-", [!Ref ResourcePrefix, "private-route-table-1"]]
+  # PrivateRouteTable1:
+  #   Type: "AWS::EC2::RouteTable"
+  #   Properties:
+  #     VpcId:
+  #       Ref: VPC
+  #     Tags:
+  #       - Key: Application
+  #         Value: AWS-RoseTTAFold        
+  #       - Key: Name
+  #         Value: !Join ["-", [!Ref ResourcePrefix, "private-route-table-1"]]
 
-  PrivateRouteTable2:
-    Type: "AWS::EC2::RouteTable"
-    Properties:
-      VpcId:
-        Ref: VPC
-      Tags:
-        - Key: Application
-          Value: AWS-RoseTTAFold        
-        - Key: Name
-          Value: !Join ["-", [!Ref ResourcePrefix, "private-route-table-2"]]
+  # PrivateRouteTable2:
+  #   Type: "AWS::EC2::RouteTable"
+  #   Properties:
+  #     VpcId:
+  #       Ref: VPC
+  #     Tags:
+  #       - Key: Application
+  #         Value: AWS-RoseTTAFold        
+  #       - Key: Name
+  #         Value: !Join ["-", [!Ref ResourcePrefix, "private-route-table-2"]]
 
   PrivateRouteToInternet0:
     Type: "AWS::EC2::Route"
@@ -328,23 +328,23 @@ Resources:
       NatGatewayId:
         Ref: NATGateway0
 
-  PrivateRouteToInternet1:
-    Type: "AWS::EC2::Route"
-    Properties:
-      RouteTableId:
-        Ref: PrivateRouteTable1
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId:
-        Ref: NATGateway1
+  # PrivateRouteToInternet1:
+  #   Type: "AWS::EC2::Route"
+  #   Properties:
+  #     RouteTableId:
+  #       Ref: PrivateRouteTable1
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId:
+  #       Ref: NATGateway1
 
-  PrivateRouteToInternet2:
-    Type: "AWS::EC2::Route"
-    Properties:
-      RouteTableId:
-        Ref: PrivateRouteTable2
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId:
-        Ref: NATGateway2
+  # PrivateRouteToInternet2:
+  #   Type: "AWS::EC2::Route"
+  #   Properties:
+  #     RouteTableId:
+  #       Ref: PrivateRouteTable2
+  #     DestinationCidrBlock: 0.0.0.0/0
+  #     NatGatewayId:
+  #       Ref: NATGateway2
 
   PrivateSubnetRouteTableAssociation0:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
@@ -354,21 +354,21 @@ Resources:
       RouteTableId:
         Ref: PrivateRouteTable0
 
-  PrivateSubnetRouteTableAssociation1:
-    Type: "AWS::EC2::SubnetRouteTableAssociation"
-    Properties:
-      SubnetId:
-        Ref: PrivateSubnet1
-      RouteTableId:
-        Ref: PrivateRouteTable1
+  # PrivateSubnetRouteTableAssociation1:
+  #   Type: "AWS::EC2::SubnetRouteTableAssociation"
+  #   Properties:
+  #     SubnetId:
+  #       Ref: PrivateSubnet1
+  #     RouteTableId:
+  #       Ref: PrivateRouteTable1
 
-  PrivateSubnetRouteTableAssociation2:
-    Type: "AWS::EC2::SubnetRouteTableAssociation"
-    Properties:
-      SubnetId:
-        Ref: PrivateSubnet2
-      RouteTableId:
-        Ref: PrivateRouteTable2
+  # PrivateSubnetRouteTableAssociation2:
+  #   Type: "AWS::EC2::SubnetRouteTableAssociation"
+  #   Properties:
+  #     SubnetId:
+  #       Ref: PrivateSubnet2
+  #     RouteTableId:
+  #       Ref: PrivateRouteTable2
 
   ##################################################
   # S3
@@ -395,8 +395,8 @@ Resources:
       RouteTableIds:
         - !Ref PublicRouteTable
         - !Ref PrivateRouteTable0
-        - !Ref PrivateRouteTable1
-        - !Ref PrivateRouteTable2
+#        - !Ref PrivateRouteTable1
+#        - !Ref PrivateRouteTable2
       ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
       VpcId: !Ref VPC
 
@@ -888,8 +888,8 @@ Resources:
           - !GetAtt VPC.DefaultSecurityGroup
         Subnets:
           - Ref: PrivateSubnet0
-          - Ref: PrivateSubnet1
-          - Ref: PrivateSubnet2
+#          - Ref: PrivateSubnet1
+#          - Ref: PrivateSubnet2
         Type: EC2
       State: ENABLED
       Type: MANAGED
@@ -916,8 +916,8 @@ Resources:
           - !GetAtt VPC.DefaultSecurityGroup        
         Subnets:
           - Ref: PrivateSubnet0
-          - Ref: PrivateSubnet1
-          - Ref: PrivateSubnet2
+#          - Ref: PrivateSubnet1
+#          - Ref: PrivateSubnet2
         Type: EC2
       State: ENABLED
       Type: MANAGED
