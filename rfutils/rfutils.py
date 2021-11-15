@@ -22,8 +22,8 @@ from string import ascii_uppercase, ascii_lowercase
 from time import sleep
 import uuid
 
-# os.environ["AWS_PROFILE"] = "bloyal+proteinfolding-Admin"
-os.environ["AWS_PROFILE"] = "bloyal-Admin"
+#os.environ["AWS_PROFILE"] = "bloyal+proteinfolding-Admin"
+#os.environ["AWS_PROFILE"] = "bloyal-Admin"
 
 
 # Get service clients
