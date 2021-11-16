@@ -875,7 +875,9 @@ Resources:
       ComputeEnvironmentName:
         !Join ["-", [!Ref ResourcePrefix, "compute-environment-cpu"]]
       ComputeResources:
-        AllocationStrategy: BEST_FIT_PROGRESSIVE
+        #AllocationStrategy: BEST_FIT_PROGRESSIVE
+        AllocationStrategy: SPOT_CAPACITY_OPTIMIZED
+        BidPercentage: 95
         InstanceRole: !Ref InstanceProfile
         InstanceTypes:
           - optimal
@@ -890,7 +892,7 @@ Resources:
           - Ref: PrivateSubnet0
 #          - Ref: PrivateSubnet1
 #          - Ref: PrivateSubnet2
-        Type: EC2
+        Type: SPOT
       State: ENABLED
       Type: MANAGED
       Tags:
@@ -903,8 +905,9 @@ Resources:
       ComputeEnvironmentName:
         !Join ["-", [!Ref ResourcePrefix, "compute-environment-gpu"]]
       ComputeResources:
-        AllocationStrategy: BEST_FIT_PROGRESSIVE
-        InstanceRole: !Ref InstanceProfile
+        #AllocationStrategy: BEST_FIT_PROGRESSIVE
+        AllocationStrategy: SPOT_CAPACITY_OPTIMIZED
+        BidPercentage: 95
         InstanceTypes:
           - g4dn
         LaunchTemplate:
@@ -918,7 +921,7 @@ Resources:
           - Ref: PrivateSubnet0
 #          - Ref: PrivateSubnet1
 #          - Ref: PrivateSubnet2
-        Type: EC2
+        Type: SPOT
       State: ENABLED
       Type: MANAGED
       Tags:
@@ -989,12 +992,12 @@ Resources:
           - Name: fsx
             Host:
               SourcePath: /fsx
-      JobDefinitionName: AWS-RosettaFold-CPU-Job-Definition
+      JobDefinitionName: !Join ["-", [!Ref ResourcePrefix, "gpu-job-definition"]]              
       PlatformCapabilities:
         - EC2
       PropagateTags: true
       RetryStrategy:
-        Attempts: 2
+        Attempts: 3
       Tags:
         Application: AWS-RoseTTAFold      
         Name: !Join ["-", [!Ref ResourcePrefix, "cpu-job-definition"]]
@@ -1039,12 +1042,12 @@ Resources:
           - Type: MEMORY
             Value: 90000
           - Type: GPU
-            Value: 2
+            Value: 3
         Volumes:
           - Name: fsx
             Host:
               SourcePath: /fsx
-      JobDefinitionName: AWS-RosettaFold-GPU-Job-Definition
+      JobDefinitionName: !Join ["-", [!Ref ResourcePrefix, "gpu-job-definition"]]              
       PlatformCapabilities:
         - EC2
       PropagateTags: true
