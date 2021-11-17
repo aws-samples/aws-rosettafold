@@ -330,7 +330,7 @@ Resources:
         DeploymentType: "PERSISTENT_1"
         ExportPath: !Join ["", ["s3://", !Ref RefDataBucketName]]
         ImportPath: !Join ["", ["s3://", !Ref RefDataBucketName]]
-        PerUnitStorageThroughput: 50
+        PerUnitStorageThroughput: 100
       Tags:
         - Key: Application
           Value: AWS-RoseTTAFold
