@@ -11,6 +11,9 @@ Dockerfile and wrapper scripts for running RoseTTAFold on AWS.
 
 Because the reference data is loaded lazily into FSx, the first job you submit to a new stack may take several hours. Once the data transfer has finished, subsequent jobs will be much faster.
 
+## Costs
+This workload costs approximately $270 per month to maintain, plus approximately $2.10 per protein analysis job.
+
 ## Links
 - [University of Washington Institute for Protein Design](https://www.ipd.uw.edu/2021/07/rosettafold-accurate-protein-structure-prediction-accessible-to-all/)
 - [RoseTTAFold Paper](https://www.ipd.uw.edu/wp-content/uploads/2021/07/Baek_etal_Science2021_RoseTTAFold.pdf)
