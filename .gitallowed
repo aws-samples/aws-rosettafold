@@ -1,0 +1,2 @@
+# some files within the data directory are showing false-positives on leaking secrets
+^data/.*\.(hhr|msa|a3m|fa):
