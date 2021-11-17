@@ -4,8 +4,6 @@ Helper functions for the AWS-RoseTTAFold notebook.
 
 ## Load dependencies
 from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
 import boto3
 from datetime import datetime
 import json
@@ -21,10 +19,6 @@ import string
 from string import ascii_uppercase, ascii_lowercase
 from time import sleep
 import uuid
-
-#os.environ["AWS_PROFILE"] = "bloyal+proteinfolding-Admin"
-#os.environ["AWS_PROFILE"] = "bloyal-Admin"
-
 
 # Get service clients
 session = boto3.session.Session()
@@ -810,3 +804,46 @@ def display_structure(jobId, bucket):
         print(
             f"{info['jobId']} is in {info['status']} status. Please try again once the job has completed."
         )
+
+
+def get_rosettafold_batch_resources():
+    """
+    Retrieve a dataframe of batch job definitions and queues created as part of an
+    AWS-RoseTTAFold stack.
+    """
+    batch = boto3.client("batch", region_name="us-east-1")
+
+    job_definition_response = batch.describe_job_definitions()
+    list_of_lists = []
+
+    job_list = []
+    for jd in job_definition_response["jobDefinitions"]:
+        if (
+            jd["status"] == "ACTIVE"
+            and "aws-rosettafold-job-def" in jd["jobDefinitionName"]
+        ):
+            name_split = jd["jobDefinitionName"].split("-")
+            row = [
+                name_split[5],
+                name_split[4],
+                "Job Definition",
+                jd["jobDefinitionName"],
+            ]
+            job_list.append(row)
+
+    job_queue_response = batch.describe_job_queues()
+    jq_list = []
+    for jq in job_queue_response["jobQueues"]:
+        if (
+            jq["state"] == "ENABLED"
+            and jq["status"] == "VALID"
+            and "aws-rosettafold-queue" in jq["jobQueueName"]
+        ):
+            name_split = jq["jobQueueName"].split("-")
+            row = [name_split[4], name_split[3], "Job Queue", jq["jobQueueName"]]
+            job_list.append(row)
+
+    return pd.DataFrame(
+        job_list,
+        columns=["stackId", "instanceType", "resourceType", "resourceName"],
+    ).sort_values(by=["stackId", "instanceType"], ascending=False)
