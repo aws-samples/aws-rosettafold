@@ -2,9 +2,11 @@
 ## Overview
 Dockerfile and wrapper scripts for running RoseTTAFold on AWS. 
 
+![AWS-RoseTTAFold Architecture](img/AWS-RoseTTAFold-arch.png)
+
 ## Getting Started
 1. Submit a request to bloyal@amazon.com to grant your AWS account of interest access to the necessary S3 buckets. NOTE: These will be replaced with public buckets before the workload is shared externally.
-2. Create a new the CloudFormation stack using the template at `config/cfn.yaml`. Note that the "ResourcePrefix" parameter must be unique for your account.
+2. Create a new CloudFormation stack using the template at `config/cfn.yaml`.
 3. Once the stack creation is finished (about 15 minutes), check to make sure that CodeBuild has finished building and publishing the Docker container to ECR before submitting any jobs to AWS Batch.
 
 Because the reference data is loaded lazily into FSx, the first job you submit to a new stack may take several hours. Once the data transfer has finished, subsequent jobs will be much faster.
