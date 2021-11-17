@@ -5,14 +5,13 @@ Dockerfile and wrapper scripts for running RoseTTAFold on AWS.
 ![AWS-RoseTTAFold Architecture](img/AWS-RoseTTAFold-arch.png)
 
 ## Getting Started
-1. Submit a request to bloyal@amazon.com to grant your AWS account of interest access to the necessary S3 buckets. NOTE: These will be replaced with public buckets before the workload is shared externally.
-2. Create a new CloudFormation stack using the template at `config/cfn.yaml`.
-3. Once the stack creation is finished (about 15 minutes), check to make sure that CodeBuild has finished building and publishing the Docker container to ECR before submitting any jobs to AWS Batch.
-
-Because the reference data is loaded lazily into FSx, the first job you submit to a new stack may take several hours. Once the data transfer has finished, subsequent jobs will be much faster.
+1. Submit a request to bloyal@amazon.com to grant your AWS account of interest access to the necessary S3 buckets. NOTE: The repository maintainers will replace these with public buckets before the workload is published externally.
+2. Create a new CloudFormation stack with the template at `config/cfn.yaml`.
+3. It will take 17 minutes for CloudFormation to create the stack and another 5 minutes for CodeBuild to build and publish the container. Please wait for both of these tasks to finish before you submit any analysis jobs. 
+4. Use the `AWS-RoseTTAFold.ipynb` and `CASP14-Analysis.ipynb` notebooks to submit protein sequences for analysis. Note that the first job you submit will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 5-7 hours to complete. The duration of subsequent jobs will depend on the length and complexity of the protein sequence.
 
 ## Costs
-This workload costs approximately $270 per month to maintain, plus approximately $2.10 per protein analysis job.
+This workload costs approximately $270 per month to maintain, plus another $2.10 per job.
 
 ## Links
 - [University of Washington Institute for Protein Design](https://www.ipd.uw.edu/2021/07/rosettafold-accurate-protein-structure-prediction-accessible-to-all/)
