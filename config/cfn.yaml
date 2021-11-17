@@ -32,7 +32,18 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "VPC", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "VPC",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   PublicSubnet0:
     Type: "AWS::EC2::Subnet"
@@ -50,7 +61,18 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "public-subnet", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "public-subnet",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   PrivateSubnet0:
     Type: "AWS::EC2::Subnet"
@@ -68,7 +90,18 @@ Resources:
         - Key: Network
           Value: Private
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "private-subnet", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "private-subnet",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   InternetGateway:
     Type: "AWS::EC2::InternetGateway"
@@ -79,7 +112,18 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "igw", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "igw",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   GatewayToInternet:
     Type: "AWS::EC2::VPCGatewayAttachment"
@@ -100,7 +144,18 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "public-route-table", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "public-route-table",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   PublicRoute:
     Type: "AWS::EC2::Route"
@@ -128,7 +183,18 @@ Resources:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "eip", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "eip",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   NATGateway0:
     Type: "AWS::EC2::NatGateway"
@@ -143,7 +209,18 @@ Resources:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "nat-gateway", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "nat-gateway",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   PrivateRouteTable0:
     Type: "AWS::EC2::RouteTable"
@@ -154,7 +231,18 @@ Resources:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "private-route-table", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "private-route-table",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   PrivateRouteToInternet0:
     Type: "AWS::EC2::Route"
@@ -181,7 +269,17 @@ Resources:
     Type: "AWS::S3::Bucket"
     Properties:
       BucketName:
-        !Join ['-', ['aws-rosettafold', "s3", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "s3",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -190,8 +288,19 @@ Resources:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "s3", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
-    DeletionPolicy: Delete
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "s3",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
+    DeletionPolicy: Retain
 
   S3Endpoint:
     Type: "AWS::EC2::VPCEndpoint"
@@ -226,7 +335,18 @@ Resources:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "fsx-lustre", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "fsx-lustre",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   ##################################################
   # EC2 Launch Template
@@ -235,8 +355,18 @@ Resources:
   RFInstanceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: 
-        !Join ['-', ['aws-rosettafold', "instance-role", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      RoleName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "instance-role",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       Description: "Required service policies to support running RoseTTAFold on AWS Batch"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -256,13 +386,34 @@ Resources:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "instance-role", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "instance-role",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   InstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
-      InstanceProfileName: 
-        !Join ['-', ['aws-rosettafold', "instance-profile", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      InstanceProfileName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "instance-profile",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       Path: /
       Roles:
         - !Ref RFInstanceRole
@@ -271,7 +422,17 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateName:
-        !Join ['-', ['aws-rosettafold', "launch-template", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "launch-template",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       LaunchTemplateData:
         BlockDeviceMappings:
           - DeviceName: "/dev/xvda"
@@ -288,7 +449,21 @@ Resources:
               - Key: Application
                 Value: AWS-RoseTTAFold
               - Key: Name
-                Value: !Join ['-', ['aws-rosettafold', "launch-template", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+                Value:
+                  !Join [
+                    "-",
+                    [
+                      "aws-rosettafold",
+                      "launch-template",
+                      !Select [
+                        4,
+                        !Split [
+                          "-",
+                          !Select [2, !Split ["/", !Ref AWS::StackId]],
+                        ],
+                      ],
+                    ],
+                  ]
         UserData:
           Fn::Base64:
             Fn::Join:
@@ -332,32 +507,84 @@ Resources:
           Bucket: !Ref RepoBucketName
           Key: aws-rosettafold.zip
       RepositoryDescription: Code for running RoseTTAFold on AWS
-      RepositoryName: 
-        !Join ['-', ['aws-rosettafold', "code-repo", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      RepositoryName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "code-repo",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       Tags:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "code-repo", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "code-repo",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   RFContainerRegistry:
     Type: AWS::ECR::Repository
     Properties:
       EncryptionConfiguration:
         EncryptionType: AES256
-      RepositoryName: 
-        !Join ['-', ['aws-rosettafold', "container-repo", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      RepositoryName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "container-repo",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       Tags:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "container-repo", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "container-repo",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   CodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: 
-        !Join ['-', ['aws-rosettafold', "codebuild-role", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      RoleName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "codebuild-role",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       Description: "Required service policies to support building AWS-RoseTTAFold container"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -441,7 +668,18 @@ Resources:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "codebuild-role", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "codebuild-role",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   RFCodeBuildProject:
     Type: AWS::CodeBuild::Project
@@ -462,8 +700,18 @@ Resources:
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true
         Type: LINUX_CONTAINER
-      Name: 
-        !Join ['-', ['aws-rosettafold', "codebuild-project", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      Name:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "codebuild-project",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       ResourceAccessRole: !GetAtt CodeBuildRole.Arn
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
@@ -476,13 +724,34 @@ Resources:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "codebuild-project", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "codebuild-project",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   CodePipelineRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: 
-        !Join ['-', ['aws-rosettafold', "codepipeline-role", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      RoleName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "codepipeline-role",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       Description: "Required service policies to support running AWS-RoseTTAFold build pipeline"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -623,7 +892,18 @@ Resources:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "codepipeline-role", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "codepipeline-role",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   RFCodePipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -631,8 +911,18 @@ Resources:
       ArtifactStore:
         Location: !Ref ResultsS3
         Type: S3
-      Name: 
-        !Join ['-', ['aws-rosettafold', "codepipeline", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      Name:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "codepipeline",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       RestartExecutionOnUpdate: true
       RoleArn: !GetAtt CodePipelineRole.Arn
       Stages:
@@ -674,8 +964,18 @@ Resources:
         - Key: Application
           Value: AWS-RoseTTAFold
         - Key: Name
-          Value: !Join ['-', ['aws-rosettafold', "codepipeline", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
-
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "codepipeline",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
 
   ##################################################
   # Batch Environment
@@ -684,8 +984,18 @@ Resources:
   CPUComputeEnvironment:
     Type: AWS::Batch::ComputeEnvironment
     Properties:
-      ComputeEnvironmentName: 
-        !Join ['-', ['aws-rosettafold', "ce-cpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      ComputeEnvironmentName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "ce-cpu",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       ComputeResources:
         AllocationStrategy: SPOT_CAPACITY_OPTIMIZED
         BidPercentage: 95
@@ -706,13 +1016,34 @@ Resources:
       Type: MANAGED
       Tags:
         Application: AWS-RoseTTAFold
-        Name: !Join ['-', ['aws-rosettafold', "ce-cpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+        Name:
+          !Join [
+            "-",
+            [
+              "aws-rosettafold",
+              "ce-cpu",
+              !Select [
+                4,
+                !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+              ],
+            ],
+          ]
 
   GPUComputeEnvironment:
     Type: AWS::Batch::ComputeEnvironment
     Properties:
-      ComputeEnvironmentName: 
-        !Join ['-', ['aws-rosettafold', "ce-gpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      ComputeEnvironmentName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "ce-gpu",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       ComputeResources:
         AllocationStrategy: SPOT_CAPACITY_OPTIMIZED
         BidPercentage: 95
@@ -733,7 +1064,18 @@ Resources:
       Type: MANAGED
       Tags:
         Application: AWS-RoseTTAFold
-        Name: !Join ['-', ['aws-rosettafold', "ce-gpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+        Name:
+          !Join [
+            "-",
+            [
+              "aws-rosettafold",
+              "ce-gpu",
+              !Select [
+                4,
+                !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+              ],
+            ],
+          ]
 
   CPUJobQueue:
     Type: AWS::Batch::JobQueue
@@ -741,13 +1083,34 @@ Resources:
       ComputeEnvironmentOrder:
         - ComputeEnvironment: !Ref CPUComputeEnvironment
           Order: 1
-      JobQueueName: 
-        !Join ['-', ['aws-rosettafold', "queue-cpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      JobQueueName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "queue-cpu",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       Priority: 10
       State: ENABLED
       Tags:
         Application: AWS-RoseTTAFold
-        Name: !Join ['-', ['aws-rosettafold', "queue-cpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+        Name:
+          !Join [
+            "-",
+            [
+              "aws-rosettafold",
+              "queue-cpu",
+              !Select [
+                4,
+                !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+              ],
+            ],
+          ]
 
   GPUJobQueue:
     Type: AWS::Batch::JobQueue
@@ -755,13 +1118,34 @@ Resources:
       ComputeEnvironmentOrder:
         - ComputeEnvironment: !Ref GPUComputeEnvironment
           Order: 1
-      JobQueueName: 
-        !Join ['-', ['aws-rosettafold', "queue-gpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      JobQueueName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "queue-gpu",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       Priority: 10
       State: ENABLED
       Tags:
         Application: AWS-RoseTTAFold
-        Name: !Join ['-', ['aws-rosettafold', "queue-gpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+        Name:
+          !Join [
+            "-",
+            [
+              "aws-rosettafold",
+              "queue-gpu",
+              !Select [
+                4,
+                !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+              ],
+            ],
+          ]
 
   CPUJobDefinition:
     Type: AWS::Batch::JobDefinition
@@ -801,8 +1185,18 @@ Resources:
           - Name: fsx
             Host:
               SourcePath: /fsx
-      JobDefinitionName: 
-        !Join ['-', ['aws-rosettafold', "job-def-cpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      JobDefinitionName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "job-def-cpu",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       PlatformCapabilities:
         - EC2
       PropagateTags: true
@@ -810,7 +1204,18 @@ Resources:
         Attempts: 3
       Tags:
         Application: AWS-RoseTTAFold
-        Name: !Join ['-', ['aws-rosettafold', "job-def-cpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+        Name:
+          !Join [
+            "-",
+            [
+              "aws-rosettafold",
+              "job-def-cpu",
+              !Select [
+                4,
+                !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+              ],
+            ],
+          ]
       Type: container
 
   GPUJobDefinition:
@@ -858,8 +1263,18 @@ Resources:
           - Name: fsx
             Host:
               SourcePath: /fsx
-      JobDefinitionName: 
-        !Join ['-', ['aws-rosettafold', "job-def-gpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      JobDefinitionName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "job-def-gpu",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
       PlatformCapabilities:
         - EC2
       PropagateTags: true
@@ -867,7 +1282,18 @@ Resources:
         Attempts: 2
       Tags:
         Application: AWS-RoseTTAFold
-        Name: !Join ['-', ['aws-rosettafold', "job-def-gpu", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+        Name:
+          !Join [
+            "-",
+            [
+              "aws-rosettafold",
+              "job-def-gpu",
+              !Select [
+                4,
+                !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+              ],
+            ],
+          ]
       Type: container
 
 Outputs:
@@ -878,25 +1304,21 @@ Outputs:
       Name: !Join [":", [!Ref "AWS::StackName", CodeRepoUri]]
   CPUJobDefinition:
     Description: Name of the CPU job definition.
-    Value: 
-      !Select [5, !Split [':', !Ref CPUJobDefinition]]
+    Value: !Select [5, !Split [":", !Ref CPUJobDefinition]]
     Export:
-      Name: !Join [":", [!Ref "AWS::StackName", CPUJobDefinition]]        
+      Name: !Join [":", [!Ref "AWS::StackName", CPUJobDefinition]]
   CPUJobQueueName:
     Description: Name of the CPU job queue.
-    Value: 
-      !Select [5, !Split [':', !Ref CPUJobQueue]]
+    Value: !Select [5, !Split [":", !Ref CPUJobQueue]]
     Export:
-      Name: !Join [":", [!Ref "AWS::StackName", CPUJobQueueName]]  
+      Name: !Join [":", [!Ref "AWS::StackName", CPUJobQueueName]]
   GPUJobDefinition:
     Description: Name of the GPU job definition.
-    Value: 
-      !Select [5, !Split [':', !Ref GPUJobDefinition]]
+    Value: !Select [5, !Split [":", !Ref GPUJobDefinition]]
     Export:
-      Name: !Join [":", [!Ref "AWS::StackName", GPUJobDefinition]]   
+      Name: !Join [":", [!Ref "AWS::StackName", GPUJobDefinition]]
   GPUJobQueueName:
     Description: Name of the GPU job queue.
-    Value: 
-      !Select [5, !Split [':', !Ref GPUJobQueue]]
+    Value: !Select [5, !Split [":", !Ref GPUJobQueue]]
     Export:
-      Name: !Join [":", [!Ref "AWS::StackName", GPUJobQueueName]]   
+      Name: !Join [":", [!Ref "AWS::StackName", GPUJobQueueName]]
