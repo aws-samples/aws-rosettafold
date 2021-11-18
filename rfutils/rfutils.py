@@ -690,42 +690,43 @@ def get_rf_job_info(
     batch_client = boto3.client("batch")
     recent_jobs = list_recent_jobs([cpu_queue, gpu_queue], hrs_in_past)
     recent_job_df = pd.DataFrame.from_dict(recent_jobs)
-    detail_list = batch_client.describe_jobs(jobs=recent_job_df.jobId.to_list())
     list_of_lists = []
-    for job in detail_list["jobs"]:
-        resource_dict = {}
-        for resource in job["container"]["resourceRequirements"]:
-            resource_dict[resource["type"]] = resource["value"]
-        row = [
-            job["jobName"],
-            job["jobId"],
-            job["jobQueue"],
-            job["status"],
-            datetime.fromtimestamp(job["createdAt"] / 1000),
-            datetime.fromtimestamp(job["startedAt"] / 1000)
-            if "startedAt" in job
-            else "NaT",
-            datetime.fromtimestamp(job["stoppedAt"] / 1000)
-            if "stoppedAt" in job
-            else "NaT",
-            str(
+    if len(recent_job_df) > 0:
+        detail_list = batch_client.describe_jobs(jobs=recent_job_df.jobId.to_list())
+        for job in detail_list["jobs"]:
+            resource_dict = {}
+            for resource in job["container"]["resourceRequirements"]:
+                resource_dict[resource["type"]] = resource["value"]
+            row = [
+                job["jobName"],
+                job["jobId"],
+                job["jobQueue"],
+                job["status"],
+                datetime.fromtimestamp(job["createdAt"] / 1000),
+                datetime.fromtimestamp(job["startedAt"] / 1000)
+                if "startedAt" in job
+                else "NaT",
                 datetime.fromtimestamp(job["stoppedAt"] / 1000)
-                - datetime.fromtimestamp(job["startedAt"] / 1000)
-            )
-            if "startedAt" in job and "stoppedAt" in job
-            else "NaN",
-            (job["stoppedAt"] / 1000) - (job["startedAt"] / 1000)
-            if "startedAt" in job and "stoppedAt" in job
-            else "NaN",
-            job["jobDefinition"],
-            job["container"]["logStreamName"]
-            if "logStreamName" in job["container"]
-            else "",
-            int(resource_dict["VCPU"]),
-            int(float(resource_dict["MEMORY"]) / 1000),
-            int(resource_dict["GPU"]) if "GPU" in resource_dict else 0,
-        ]
-        list_of_lists.append(row)
+                if "stoppedAt" in job
+                else "NaT",
+                str(
+                    datetime.fromtimestamp(job["stoppedAt"] / 1000)
+                    - datetime.fromtimestamp(job["startedAt"] / 1000)
+                )
+                if "startedAt" in job and "stoppedAt" in job
+                else "NaN",
+                (job["stoppedAt"] / 1000) - (job["startedAt"] / 1000)
+                if "startedAt" in job and "stoppedAt" in job
+                else "NaN",
+                job["jobDefinition"],
+                job["container"]["logStreamName"]
+                if "logStreamName" in job["container"]
+                else "",
+                int(resource_dict["VCPU"]),
+                int(float(resource_dict["MEMORY"]) / 1000),
+                int(resource_dict["GPU"]) if "GPU" in resource_dict else 0,
+            ]
+            list_of_lists.append(row)
 
     return pd.DataFrame(
         list_of_lists,
@@ -772,10 +773,21 @@ def display_msa(jobId, bucket):
         )
 
 
-def display_structure(jobId, bucket):
+def display_structure(
+    jobId,
+    bucket,
+    color="lDDT",
+    show_sidechains=False,
+    show_mainchains=False,
+    chains=1,
+    vmin=0.5,
+    vmax=0.9,
+):
     """
     Display the predicted structure in a Jupyter notebook cell
     """
+    if color not in ["chain", "lDDT", "rainbow"]:
+        raise ValueError("Color must be 'LDDT' (default), 'chain', or 'rainbow'")
 
     info = get_batch_job_info(jobId)
 
@@ -786,17 +798,14 @@ def display_structure(jobId, bucket):
         s3.download_file(
             bucket, f"{info['jobName']}/{info['jobName']}.e2e.pdb", "data/e2e.pdb"
         )
-        color = "lDDT"  # @param ["chain", "lDDT", "rainbow"]
-        show_sidechains = False
-        show_mainchains = False
         plot_pdb(
             "data/e2e.pdb",
             show_sidechains,
             show_mainchains,
             color,
-            chains=1,
-            vmin=0.5,
-            vmax=0.9,
+            chains,
+            vmin,
+            vmax,
         ).show()
         if color == "lDDT":
             plot_plddt_legend().show()
