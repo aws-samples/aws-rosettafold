@@ -682,12 +682,57 @@ Resources:
               ],
             ]
 
+  CodeBuildEncryptionKey:
+    Type: "AWS::KMS::Key"
+    Properties:
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: key-default-1
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Join: [":", ["arn:aws:iam:", !Ref AWS::AccountId, "root"]]
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: Enable CodeBuild Encryption
+            Effect: Allow
+            Principal:
+              AWS: !Ref CodeBuildRole
+            Action:
+              [
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:DescribeKey",
+              ]
+            Resource: "*"
+      Tags:
+        - Key: Application
+          Value: AWS-RoseTTAFold
+        - Key: Name
+          Value:
+            !Join [
+              "-",
+              [
+                "aws-rosettafold",
+                "kms",
+                !Select [
+                  4,
+                  !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+                ],
+              ],
+            ]
+
   RFCodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
         Type: NO_ARTIFACTS
       Description: Build Docker container for RoseTTAFold execution on AWS Batch
+      EncryptionKey: !Ref CodeBuildEncryptionKey
       Environment:
         ComputeType: BUILD_GENERAL1_MEDIUM
         EnvironmentVariables:
