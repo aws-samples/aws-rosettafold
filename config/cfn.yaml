@@ -1279,7 +1279,7 @@ Resources:
         - EC2
       PropagateTags: true
       RetryStrategy:
-        Attempts: 2
+        Attempts: 3
       Tags:
         Application: AWS-RoseTTAFold
         Name:
