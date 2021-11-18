@@ -701,7 +701,7 @@ Resources:
           - Sid: Enable CodeBuild Encryption
             Effect: Allow
             Principal:
-              AWS: !Ref CodeBuildRole
+              AWS: !GetAtt CodeBuildRole.Arn
             Action:
               [
                 "kms:Encrypt",
