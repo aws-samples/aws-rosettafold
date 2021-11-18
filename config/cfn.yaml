@@ -54,7 +54,6 @@ Resources:
         Fn::Select:
           - 0
           - Fn::Cidr: [!GetAtt VPC.CidrBlock, 6, 8]
-      MapPublicIpOnLaunch: "true"
       Tags:
         - Key: Application
           Value: AWS-RoseTTAFold
@@ -541,6 +540,8 @@ Resources:
     Properties:
       EncryptionConfiguration:
         EncryptionType: AES256
+      ImageScanningConfiguration:
+        ScanOnPush: true
       RepositoryName:
         !Join [
           "-",
