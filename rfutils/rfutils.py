@@ -808,7 +808,7 @@ def display_structure(jobId, bucket):
 
 def get_rosettafold_batch_resources():
     """
-    Retrieve a dataframe of batch job definitions and queues created as part of an
+    Retrieve a list of batch job definitions and queues created as part of an
     AWS-RoseTTAFold stack.
     """
     batch = boto3.client("batch", region_name="us-east-1")
@@ -823,6 +823,10 @@ def get_rosettafold_batch_resources():
             and "aws-rosettafold-job-def" in jd["jobDefinitionName"]
         ):
             name_split = jd["jobDefinitionName"].split("-")
+            entry = {
+                "stackId": name_split[5],
+                "dataPrepJobDefinition": jd["jobDefinitionName"],
+            }
             row = [
                 name_split[5],
                 name_split[4],
@@ -843,7 +847,19 @@ def get_rosettafold_batch_resources():
             row = [name_split[4], name_split[3], "Job Queue", jq["jobQueueName"]]
             job_list.append(row)
 
-    return pd.DataFrame(
+    df = pd.DataFrame(
         job_list,
         columns=["stackId", "instanceType", "resourceType", "resourceName"],
     ).sort_values(by=["stackId", "instanceType"], ascending=False)
+    df["type"] = df["instanceType"] + df["resourceType"]
+    df = df.pivot(index="stackId", columns=["type"], values=["resourceName"])
+    df.columns = df.columns.get_level_values(1)
+    df = df.rename(
+        columns={
+            "cpuJob Definition": "dataPrepJobDefinition",
+            "cpuJob Queue": "dataPrepJobQueue",
+            "gpuJob Definition": "predictJobDefinition",
+            "gpuJob Queue": "predictJobQueue",
+        }
+    )
+    return df
