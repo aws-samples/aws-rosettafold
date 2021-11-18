@@ -570,6 +570,8 @@ Resources:
                 ],
               ],
             ]
+    DeletionPolicy: Retain
+
 
   CodeBuildRole:
     Type: AWS::IAM::Role
