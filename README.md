@@ -10,7 +10,7 @@ Dockerfile and wrapper scripts for running RoseTTAFold on AWS.
 3. Create a new CloudFormation stack with the template at `config/cfn.yaml`.
 4. It will take 17 minutes for CloudFormation to create the stack and another 5 minutes for CodeBuild to build and publish the container. Please wait for both of these tasks to finish before you submit any analysis jobs. 
 5. Clone the CodeCommit repository created by CloudFormation to a Jupyter Notebook environment of your choice.
-6. Use the `AWS-RoseTTAFold.ipynb` and `CASP14-Analysis.ipynb` notebooks to submit protein sequences for analysis. Note that the first job you submit will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 5-7 hours to complete. The duration of subsequent jobs will depend on the length and complexity of the protein sequence.
+6. Use the `AWS-RoseTTAFold.ipynb` and `CASP14-Analysis.ipynb` notebooks to submit protein sequences for analysis. Note that the first job you submit will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 3-4 hours to complete. The duration of subsequent jobs will depend on the length and complexity of the protein sequence.
 
 ## Costs
 This workload costs approximately $270 per month to maintain, plus another $2.10 per job.
