@@ -12,7 +12,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge awscli
 
-RUN wget https://github.com/RosettaCommons/RoseTTAFold/archive/main.zip \
+RUN wget https://github.com/RosettaCommons/RoseTTAFold/archive/refs/tags/v1.1.0.zip \
  && unzip main.zip \
  && mv RoseTTAFold-main /RoseTTAFold \
  && rm main.zip
