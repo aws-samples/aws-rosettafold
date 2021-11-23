@@ -1093,11 +1093,12 @@ Resources:
           ],
         ]
       ComputeResources:
-        AllocationStrategy: SPOT_CAPACITY_OPTIMIZED
-        BidPercentage: 95
+        AllocationStrategy: BEST_FIT_PROGRESSIVE
         InstanceRole: !Ref InstanceProfile
         InstanceTypes:
+          - g5
           - g4dn
+          - g3
         LaunchTemplate:
           LaunchTemplateId: !Ref InstanceLaunchTemplate
           Version: $Latest
@@ -1107,7 +1108,7 @@ Resources:
           - !GetAtt VPC.DefaultSecurityGroup
         Subnets:
           - Ref: PrivateSubnet0
-        Type: SPOT
+        Type: EC2
       State: ENABLED
       Type: MANAGED
       Tags:
