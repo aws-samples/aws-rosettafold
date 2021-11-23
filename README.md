@@ -4,6 +4,8 @@ Dockerfile and wrapper scripts for running RoseTTAFold on AWS.
 
 ![AWS-RoseTTAFold Architecture](img/AWS-RoseTTAFold-arch.png)
 
+https://files.ipd.uw.edu/pub/RoseTTAFold/Rosetta-DL_LICENSE.txt
+
 ## Getting Started
 1. Verify that the "All G and VT Spot Instance Requests" service quota for your account of interest is at least 48 (preferably 96).
 2. Submit a request to bloyal@amazon.com to grant your AWS account of interest access to the necessary S3 buckets. NOTE: The repository maintainers will replace these with public buckets before the workload is published externally.
@@ -14,6 +16,9 @@ Dockerfile and wrapper scripts for running RoseTTAFold on AWS.
 
 ## Costs
 This workload costs approximately $270 per month to maintain, plus another $2.10 per job.
+
+## Licensing
+Software, data, or weights belonging to the Rosetta-DL package ("Software") have been developed by the contributing researchers and institutions of the Rosetta Commons ("Developers") and made available through the University of Washington ("UW") for internal, non-profit, non-commercial research use. For more information about the Rosetta Commons, please see www.rosettacommons.org. The full non-commercial license agreement is available [here](https://files.ipd.uw.edu/pub/RoseTTAFold/Rosetta-DL_LICENSE.txt).
 
 ## Links
 - [University of Washington Institute for Protein Design](https://www.ipd.uw.edu/2021/07/rosettafold-accurate-protein-structure-prediction-accessible-to-all/)
