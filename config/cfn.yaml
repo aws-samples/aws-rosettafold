@@ -1096,7 +1096,6 @@ Resources:
         AllocationStrategy: BEST_FIT_PROGRESSIVE
         InstanceRole: !Ref InstanceProfile
         InstanceTypes:
-          - g5
           - g4dn
           - g3
         LaunchTemplate:
