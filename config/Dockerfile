@@ -16,9 +16,12 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     && /opt/conda/bin/conda update conda \
     && /opt/conda/bin/conda install -c conda-forge awscli
 
-# Copy selected code from v1.1 of the RoseTTAFold repo, available at 
+# Download and unzip v1.1 of the RoseTTAFold repository, available at 
 # https://github.com/RosettaCommons/RoseTTAFold
-COPY RoseTTAFold RoseTTAFold/
+RUN wget https://github.com/RosettaCommons/RoseTTAFold/archive/refs/tags/v1.1.0.zip \
+    && unzip main.zip \
+    && mv RoseTTAFold-main /RoseTTAFold \
+    && rm main.zip
 WORKDIR /RoseTTAFold
 
 # Install lddt, cs-blast, and libgomp1
@@ -34,6 +37,8 @@ COPY run_aws_predict_ver.sh .
 
 # Clean up unecessary files to save space
 RUN rm -rf \
+    example \
+    folding \
     *.gz \
     *.zip \
     *.yml \
@@ -42,7 +47,7 @@ RUN rm -rf \
 # Create a directory to mount the FSx Lustre file system with ref data
 VOLUME /fsx
 
-# Activate conda
+# Activate conda\
 RUN ["/bin/bash", "-c", \
     "/opt/conda/bin/activate", \
     "/opt/conda/bin/conda init bash", \
