@@ -15,7 +15,7 @@ https://files.ipd.uw.edu/pub/RoseTTAFold/Rosetta-DL_LICENSE.txt
 6. Use the `AWS-RoseTTAFold.ipynb` and `CASP14-Analysis.ipynb` notebooks to submit protein sequences for analysis. Note that the first job you submit will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 3-4 hours to complete. The duration of subsequent jobs will depend on the length and complexity of the protein sequence.
 
 ## Costs
-This workload costs approximately $270 per month to maintain, plus another $2.10 per job.
+This workload costs approximately $270 per month to maintain, plus another $2.56 per job.
 
 ## Licensing
 Software, data, or weights belonging to the Rosetta-DL package ("Software") have been developed by the contributing researchers and institutions of the Rosetta Commons ("Developers") and made available through the University of Washington ("UW") for internal, non-profit, non-commercial research use. For more information about the Rosetta Commons, please see www.rosettacommons.org. The full non-commercial license agreement is available [here](https://files.ipd.uw.edu/pub/RoseTTAFold/Rosetta-DL_LICENSE.txt).
