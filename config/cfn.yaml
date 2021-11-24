@@ -8,13 +8,9 @@ Parameters:
     Type: "AWS::EC2::AvailabilityZone::Name"
     Default: us-east-1a
   RefDataBucketName:
-    Description: Name of a "public" S3 bucket containing protein databases and model weights. This bucket will be mounted to the FSx Lustre filesystem.
+    Description: Name of a "public" S3 bucket containing protein databases, model weights, and code repo. This bucket will be mounted to the FSx Lustre filesystem.
     Type: String
     Default: aws-rosettafold-ref-data
-  RepoBucketName:
-    Description: Name of a "public" S3 bucket containing the AWS-RoseTTAFold repository. This will be used dueing infrastructure creation to populate a CodeCommit repository.
-    Type: String
-    Default: aws-rosettafold-repo
 
 Resources:
   ##################################################
@@ -503,7 +499,7 @@ Resources:
       Code:
         BranchName: "main"
         S3:
-          Bucket: !Ref RepoBucketName
+          Bucket: !Ref RefDataBucketName
           Key: aws-rosettafold.zip
       RepositoryDescription: Code for running RoseTTAFold on AWS
       RepositoryName:
