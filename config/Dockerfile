@@ -1,7 +1,6 @@
 FROM public.ecr.aws/n9j4s2r8/cuda:11.1.1-base-ubuntu20.04
 
 RUN apt-get update && apt-get install -y \
-    wget \
     curl \
     unzip
 
@@ -11,11 +10,6 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge awscli
-
-RUN wget https://github.com/RosettaCommons/RoseTTAFold/archive/refs/tags/v1.1.0.zip \
- && unzip main.zip \
- && mv RoseTTAFold-main /RoseTTAFold \
- && rm main.zip
 
 WORKDIR /RoseTTAFold
 
@@ -30,8 +24,6 @@ COPY run_aws_data_prep_ver.sh .
 COPY run_aws_predict_ver.sh .
 
 RUN rm -rf \
- example \
- folding \
  *.gz \
  *.zip \
  *.yml \
