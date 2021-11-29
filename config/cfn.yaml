@@ -6,11 +6,6 @@ Parameters:
   StackAvailabilityZone:
     Description: Availability zone to deploy stack resources
     Type: "AWS::EC2::AvailabilityZone::Name"
-    Default: us-east-1a
-  RefDataBucketName:
-    Description: Name of a "public" S3 bucket containing protein databases, model weights, and code repo. This bucket will be mounted to the FSx Lustre filesystem.
-    Type: String
-    Default: aws-rosettafold-ref-data
 
 Resources:
   ##################################################
@@ -323,8 +318,16 @@ Resources:
         AutoImportPolicy: NEW
         DataCompressionType: "LZ4"
         DeploymentType: "PERSISTENT_1"
-        ExportPath: !Join ["", ["s3://", !Ref RefDataBucketName]]
-        ImportPath: !Join ["", ["s3://", !Ref RefDataBucketName]]
+        ExportPath:
+          !Join [
+            "",
+            ["s3://", !Join ["-", "aws-rosettafold", !Ref AWS::Region]],
+          ]
+        ImportPath:
+          !Join [
+            "",
+            ["s3://", !Join ["-", "aws-rosettafold", !Ref AWS::Region]],
+          ]
         PerUnitStorageThroughput: 100
       Tags:
         - Key: Application
@@ -499,7 +502,7 @@ Resources:
       Code:
         BranchName: "main"
         S3:
-          Bucket: !Ref RefDataBucketName
+          Bucket: !Join ["-", "aws-rosettafold", !Ref AWS::Region]
           Key: aws-rosettafold.zip
       RepositoryDescription: Code for running RoseTTAFold on AWS
       RepositoryName:
@@ -567,7 +570,6 @@ Resources:
               ],
             ]
     DeletionPolicy: Retain
-
 
   CodeBuildRole:
     Type: AWS::IAM::Role
