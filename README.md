@@ -11,10 +11,11 @@ Running both the MSA and structure prediction steps in the same computing enviro
 This project demonstrates how to provision and use AWS services for running the RoseTTAFold protein folding algorithm on AWS Batch. 
 
 ## Quick Start
-1. Log into the AWS Console and select one of the following supported regions:
+1. (AWS internal testing only) Send Brian Loyal (bloyal) the account id and region you want to use for testing so he can add it to the ref data bucket policy. This will not be necessary once we have OSS approval.
+2. Log into the AWS Console and select one of the following supported regions:
   - us-east-1
   - us-west-2
-2. Navigate to the CloudFormation service and create a new stack using the `config/cfn.yaml` template in this repository.
+3. Navigate to the CloudFormation service and create a new stack using the `config/cfn.yaml` template in this repository.
 4. It will take 17 minutes for CloudFormation to create the stack and another 5 minutes for CodeBuild to build and publish the container. Please wait for both of these tasks to finish before you submit any analysis jobs. 
 5. Clone the CodeCommit repository created by CloudFormation to a Jupyter Notebook environment of your choice.
 6. Use the `AWS-RoseTTAFold.ipynb` and `CASP14-Analysis.ipynb` notebooks to submit protein sequences for analysis. Note that the first job you submit will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 3-4 hours to complete. The duration of subsequent jobs will depend on the length and complexity of the protein sequence.
