@@ -19,9 +19,9 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 # Download and unzip v1.1 of the RoseTTAFold repository, available at 
 # https://github.com/RosettaCommons/RoseTTAFold
 RUN wget https://github.com/RosettaCommons/RoseTTAFold/archive/refs/tags/v1.1.0.zip \
-    && unzip main.zip \
-    && mv RoseTTAFold-main /RoseTTAFold \
-    && rm main.zip
+    && unzip v1.1.0.zip \
+    && mv RoseTTAFold-1.1.0 /RoseTTAFold \
+    && rm v1.1.0.zip
 WORKDIR /RoseTTAFold
 
 # Install lddt, cs-blast, and libgomp1
