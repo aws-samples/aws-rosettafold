@@ -321,12 +321,12 @@ Resources:
         ExportPath:
           !Join [
             "",
-            ["s3://", !Join ["-", "aws-rosettafold", !Ref AWS::Region]],
+            ["s3://", !Join ["-", ["aws-rosettafold", !Ref AWS::Region]]],
           ]
         ImportPath:
           !Join [
             "",
-            ["s3://", !Join ["-", "aws-rosettafold", !Ref AWS::Region]],
+            ["s3://", !Join ["-", ["aws-rosettafold", !Ref AWS::Region]]],
           ]
         PerUnitStorageThroughput: 100
       Tags:
@@ -502,7 +502,7 @@ Resources:
       Code:
         BranchName: "main"
         S3:
-          Bucket: !Join ["-", "aws-rosettafold", !Ref AWS::Region]
+          Bucket: !Join ["-", ["aws-rosettafold", !Ref AWS::Region]]
           Key: aws-rosettafold.zip
       RepositoryDescription: Code for running RoseTTAFold on AWS
       RepositoryName:
