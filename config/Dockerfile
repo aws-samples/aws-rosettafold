@@ -1,7 +1,4 @@
-# Start with a copy of the NVIDIA cuda image maintained in ECR to avoid
-# DockerHub download limits.
-#FROM public.ecr.aws/n9j4s2r8/cuda:11.1.1-base-ubuntu20.04
-# Trying NVIDA container repo instead
+# Start with a copy of the cuda image maintained by Nvidia to avoid
 FROM nvcr.io/nvidia/cuda:11.4.2-base-ubuntu20.04
 
 # Install basic tools
