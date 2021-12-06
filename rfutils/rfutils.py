@@ -309,8 +309,8 @@ def plot_pdb(
     color="lDDT",
     chains=None,
     Ls=None,
-    vmin=50,
-    vmax=90,
+    vmin=0.5,
+    vmax=0.9,
     color_HP=False,
     size=(800, 480),
 ):
@@ -780,8 +780,8 @@ def display_structure(
     show_sidechains=False,
     show_mainchains=False,
     chains=1,
-    vmin=50,
-    vmax=90,
+    vmin=0.5,
+    vmax=0.9,
 ):
     """
     Display the predicted structure in a Jupyter notebook cell
