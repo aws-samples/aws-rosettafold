@@ -33,6 +33,7 @@ RUN apt-get install libgomp1
 COPY run_aws_e2e_ver.sh .
 COPY run_aws_data_prep_ver.sh .
 COPY run_aws_predict_ver.sh .
+COPY download_ref_data.sh .
 
 # Clean up unecessary files to save space
 RUN rm -rf \
