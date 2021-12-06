@@ -800,12 +800,12 @@ def display_structure(
         )
         plot_pdb(
             "data/e2e.pdb",
-            show_sidechains,
-            show_mainchains,
-            color,
-            chains,
-            vmin,
-            vmax,
+            show_sidechains=show_sidechains,
+            show_mainchains=show_mainchains,
+            color=color,
+            chains=chains,
+            vmin=vmin,
+            vmax=vmax,
         ).show()
         if color == "lDDT":
             plot_plddt_legend().show()
