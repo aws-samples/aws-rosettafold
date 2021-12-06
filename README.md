@@ -10,15 +10,70 @@ Running both the MSA and structure prediction steps in the same computing enviro
 
 This project demonstrates how to provision and use AWS services for running the RoseTTAFold protein folding algorithm on AWS Batch. 
 
-## Quick Start
-1. (AWS internal testing only) Send Brian Loyal (bloyal) the account id and region you want to use for testing so he can add it to the ref data bucket policy. This will not be necessary once we have OSS approval.
-2. Log into the AWS Console and select one of the following supported regions:
-  - us-east-1
-  - us-west-2
-3. Navigate to the CloudFormation service and create a new stack using the `config/cfn.yaml` template in this repository.
-4. It will take 17 minutes for CloudFormation to create the stack and another 5 minutes for CodeBuild to build and publish the container. Please wait for both of these tasks to finish before you submit any analysis jobs. 
-5. Clone the CodeCommit repository created by CloudFormation to a Jupyter Notebook environment of your choice.
-6. Use the `AWS-RoseTTAFold.ipynb` and `CASP14-Analysis.ipynb` notebooks to submit protein sequences for analysis. Note that the first job you submit will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 3-4 hours to complete. The duration of subsequent jobs will depend on the length and complexity of the protein sequence.
+## Setup
+1. Log into the AWS Console.
+2. Click on *Launch Stack*:
+
+    [![Launch Stack](img/LaunchStack.jpg)](https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=https://aws-rosettafold-repo.s3.amazonaws.com/cfn.yaml)
+
+3. For Stack Name, enter a unique name.
+4. Select an availability zone from the dropdown menu.
+5. Acknowledge that AWS CloudFormation might create IAM resources and then click *Create Stack*.
+6. It will take 17 minutes for CloudFormation to create the stack and another 5 minutes for CodeBuild to build and publish the container. Please wait for both of these tasks to finish before you submit any analysis jobs. 
+7. Download and extract the RoseTTAFold network weights (under [Rosetta-DL Software license](https://files.ipd.uw.edu/pub/RoseTTAFold/Rosetta-DL_LICENSE.txt)), and sequence and structure databases to the newly-created FSx for Lustre file system. There are two ways to do this:
+
+### Option 1
+In the AWS Console, navigate to Batch > Job Definition, select the definition named "aws-rosettafold-download-<STACK ID>", click "Submit new job", and then "Submit" with the default parameters. The batch job will take approximately 12 hours to download and extract all data.
+
+### Option 2
+In the AWS Console, navigate to EC2 > Launch Templates, select the template named "aws-rosettafold-launch-template-<STACK ID>", and then Actions > Launch instance from template. Select the Amazon Linux 2 AMI and launch the instance into the public subnet with a public IP. SSH into the instance and download your network weights and reference data of interest to the attached `/fsx` volume.
+
+```
+cd /fsx
+wget https://files.ipd.uw.edu/pub/RoseTTAFold/weights.tar.gz -O - | tar -xz
+wget http://wwwuser.gwdg.de/~compbiol/uniclust/2020_06/UniRef30_2020_06_hhsuite.tar.gz -O - | tar -xz
+wget https://files.ipd.uw.edu/pub/RoseTTAFold/pdb100_2020Mar11.tar.gz -O - | tar -xz
+wget https://bfd.mmseqs.com/bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt.tar.gz -O - | tar -xz
+```
+
+Once this is complete, your file system should look like this:
+
+```
+.
+├── bfd
+│   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_a3m.ffdata (1.4 TB)
+│   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_a3m.ffindex (1.7 GB)
+│   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_cs219.ffdata (15.7 GB)
+│   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_cs219.ffindex (1.6 GB)
+│   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_hhm.ffdata (304.4 GB)
+│   └── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_hhm.ffindex (123.6 MB)
+├── pdb100_2021Mar03
+│   ├── LICENSE (20.4 KB)
+│   ├── pdb100_2021Mar03_a3m.ffdata (633.9 GB)
+│   ├── pdb100_2021Mar03_a3m.ffindex (3.9 MB)
+│   ├── pdb100_2021Mar03_cs219.ffdata (41.8 MB)
+│   ├── pdb100_2021Mar03_cs219.ffindex (2.8 MB)
+│   ├── pdb100_2021Mar03_hhm.ffdata (6.8 GB)
+│   ├── pdb100_2021Mar03_hhm.ffindex (3.4 GB)
+│   ├── pdb100_2021Mar03_pdb.ffdata (26.2 GB)
+│   └── pdb100_2021Mar03_pdb.ffindex (3.7 MB)
+├── UniRef30_2020_06
+│   ├── UniRef30_2020_06_a3m.ffdata (139.6 GB)
+│   ├── UniRef30_2020_06_a3m.ffindex (671.0 MG)
+│   ├── UniRef30_2020_06_cs219.ffdata (6.0 GB)
+│   ├── UniRef30_2020_06_cs219.ffindex (605.0 MB)
+│   ├── UniRef30_2020_06_hhm.ffdata (34.1 GB)
+│   ├── UniRef30_2020_06_hhm.ffindex (19.4 MB)
+│   └── UniRef30_2020_06.md5sums (379.0 B)
+└── weights
+    ├── RF2t.pt (126 MB KB)
+    ├── Rosetta-DL_LICENSE.txt (3.1 KB)
+    ├── RoseTTAFold_e2e.pt (533 MB)
+    └── RoseTTAFold_pyrosetta.pt (506 MB)
+
+```
+8. Clone the CodeCommit repository created by CloudFormation to a Jupyter Notebook environment of your choice.
+9. Use the `AWS-RoseTTAFold.ipynb` and `CASP14-Analysis.ipynb` notebooks to submit protein sequences for analysis. Note that the first job you submit will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 3-4 hours to complete. The duration of subsequent jobs will depend on the length and complexity of the protein sequence.
 
 ## Architecture
 
