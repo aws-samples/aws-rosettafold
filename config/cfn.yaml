@@ -308,27 +308,17 @@ Resources:
     Type: AWS::FSx::FileSystem
     Properties:
       FileSystemType: "LUSTRE"
+      FileSystemTypeVersion: "2.12"
+      LustreConfiguration:
+        DataCompressionType: "LZ4"
+        DeploymentType: "PERSISTENT_2"
+        PerUnitStorageThroughput: 125
       SecurityGroupIds:
         - !GetAtt VPC.DefaultSecurityGroup
       StorageCapacity: 1200
       StorageType: "SSD"
       SubnetIds:
-        - !Ref PrivateSubnet0
-      LustreConfiguration:
-        AutoImportPolicy: NEW
-        DataCompressionType: "LZ4"
-        DeploymentType: "PERSISTENT_1"
-        ExportPath:
-          !Join [
-            "",
-            ["s3://", !Join ["-", ["aws-rosettafold", !Ref AWS::Region]]],
-          ]
-        ImportPath:
-          !Join [
-            "",
-            ["s3://", !Join ["-", ["aws-rosettafold", !Ref AWS::Region]]],
-          ]
-        PerUnitStorageThroughput: 100
+        - !Ref PrivateSubnet0      
       Tags:
         - Key: Application
           Value: AWS-RoseTTAFold
@@ -502,7 +492,7 @@ Resources:
       Code:
         BranchName: "main"
         S3:
-          Bucket: !Join ["-", ["aws-rosettafold", !Ref AWS::Region]]
+          Bucket: "aws-rosettafold-ref-data"
           Key: aws-rosettafold.zip
       RepositoryDescription: Code for running RoseTTAFold on AWS
       RepositoryName:
@@ -1220,7 +1210,7 @@ Resources:
           LogDriver: awslogs
         MountPoints:
           - ContainerPath: /fsx
-            ReadOnly: True
+            ReadOnly: False
             SourceVolume: fsx
         ResourceRequirements:
           - Type: VCPU
@@ -1264,6 +1254,62 @@ Resources:
           ]
       Type: container
 
+  DownloadJobDefinition:
+    Type: AWS::Batch::JobDefinition
+    Properties:
+      ContainerProperties:
+        Command:
+          - "/bin/bash"
+          - "download_ref_data.sh"
+        Image: "amazonlinux"
+        LogConfiguration:
+          LogDriver: awslogs
+        MountPoints:
+          - ContainerPath: /fsx
+            ReadOnly: False
+            SourceVolume: fsx
+        ResourceRequirements:
+          - Type: VCPU
+            Value: 16
+          - Type: MEMORY
+            Value: 64000
+        Volumes:
+          - Name: fsx
+            Host:
+              SourcePath: /fsx
+      JobDefinitionName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "download",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
+      PlatformCapabilities:
+        - EC2
+      PropagateTags: true
+      RetryStrategy:
+        Attempts: 3
+      Tags:
+        Application: AWS-RoseTTAFold
+        Name:
+          !Join [
+            "-",
+            [
+              "aws-rosettafold",
+              "download",
+              !Select [
+                4,
+                !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+              ],
+            ],
+          ]
+      Type: container      
+
   GPUJobDefinition:
     Type: AWS::Batch::JobDefinition
     Properties:
@@ -1296,7 +1342,7 @@ Resources:
           LogDriver: awslogs
         MountPoints:
           - ContainerPath: /fsx
-            ReadOnly: True
+            ReadOnly: False
             SourceVolume: fsx
         ResourceRequirements:
           - Type: VCPU
