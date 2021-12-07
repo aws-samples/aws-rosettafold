@@ -815,12 +815,12 @@ def display_structure(
         )
 
 
-def get_rosettafold_batch_resources():
+def get_rosettafold_batch_resources(region="us-east-1"):
     """
     Retrieve a list of batch job definitions and queues created as part of an
     AWS-RoseTTAFold stack.
     """
-    batch = boto3.client("batch", region_name="us-east-1")
+    batch = boto3.client("batch", region_name=region)
 
     job_definition_response = batch.describe_job_definitions()
     list_of_lists = []
