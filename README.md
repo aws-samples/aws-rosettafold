@@ -19,14 +19,14 @@ This project demonstrates how to provision and use AWS services for running the 
 3. For Stack Name, enter a unique name.
 4. Select an availability zone from the dropdown menu.
 5. Acknowledge that AWS CloudFormation might create IAM resources and then click *Create Stack*.
-6. It will take 17 minutes for CloudFormation to create the stack and another 5 minutes for CodeBuild to build and publish the container. Please wait for both of these tasks to finish before you submit any analysis jobs. 
+6. It will take 10 minutes for CloudFormation to create the stack and another 15 minutes for CodeBuild to build and publish the container (25 minutes total). Please wait for both of these tasks to finish before you submit any analysis jobs. 
 7. Download and extract the RoseTTAFold network weights (under [Rosetta-DL Software license](https://files.ipd.uw.edu/pub/RoseTTAFold/Rosetta-DL_LICENSE.txt)), and sequence and structure databases to the newly-created FSx for Lustre file system. There are two ways to do this:
 
 ### Option 1
 In the AWS Console, navigate to **EC2 > Launch Templates**, select the template named "aws-rosettafold-launch-template-<STACK ID>", and then **Actions > Launch instance from template**. Select the Amazon Linux 2 AMI and launch the instance into the public subnet with a public IP. SSH into the instance and download your network weights and reference data of interest to the attached `/fsx` volume (i.e. Installation steps 3 and 5 from the [RoseTTAFold public repository](https://github.com/RosettaCommons/RoseTTAFold))
 
 ## Option 2
-Create a new S3 bucket in your region of interest. Spin up an EC2 instance in a public subnet in the same region and use this to download and extract the network weights and reference data. Once this is complete, copy the extracted data to S3. In the AWS Console, navigate to **FSx > File Systems** and select the FSx for Lustre file system created above. Link this file system to your new S3 bucket using [these instructions](https://docs.aws.amazon.com/fsx/latest/LustreGuide/create-dra-linked-data-repo.html#create-linked-dra). Note that the first job you submit using this data repository will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 1-2 hours to complete.
+Create a new S3 bucket in your region of interest. Spin up an EC2 instance in a public subnet in the same region and use this to download and extract the network weights and reference data. Once this is complete, copy the extracted data to S3. In the AWS Console, navigate to **FSx > File Systems** and select the FSx for Lustre file system created above. Link this file system to your new S3 bucket using [these instructions](https://docs.aws.amazon.com/fsx/latest/LustreGuide/create-dra-linked-data-repo.html#create-linked-dra). This is a good option if you want to create multiple stacks without downloading and extracting the reference data multiple times. Note that the first job you submit using this data repository will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 1-2 hours to complete.
 
 Once this is complete, your FSx for Lustre file system should look like this:
 
