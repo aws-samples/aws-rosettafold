@@ -1199,7 +1199,7 @@ Resources:
           - "-w"
           - "/work"
           - "-d"
-          - "/fsx"
+          - "/fsx/aws-rosettafold-ref-data"
           - "-c"
           - "16"
           - "-m"
@@ -1252,63 +1252,7 @@ Resources:
               ],
             ],
           ]
-      Type: container
-
-  DownloadJobDefinition:
-    Type: AWS::Batch::JobDefinition
-    Properties:
-      ContainerProperties:
-        Command:
-          - "/bin/bash"
-          - "download_ref_data.sh"
-        Image: "amazonlinux"
-        LogConfiguration:
-          LogDriver: awslogs
-        MountPoints:
-          - ContainerPath: /fsx
-            ReadOnly: False
-            SourceVolume: fsx
-        ResourceRequirements:
-          - Type: VCPU
-            Value: 16
-          - Type: MEMORY
-            Value: 64000
-        Volumes:
-          - Name: fsx
-            Host:
-              SourcePath: /fsx
-      JobDefinitionName:
-        !Join [
-          "-",
-          [
-            "aws-rosettafold",
-            "download",
-            !Select [
-              4,
-              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
-            ],
-          ],
-        ]
-      PlatformCapabilities:
-        - EC2
-      PropagateTags: true
-      RetryStrategy:
-        Attempts: 3
-      Tags:
-        Application: AWS-RoseTTAFold
-        Name:
-          !Join [
-            "-",
-            [
-              "aws-rosettafold",
-              "download",
-              !Select [
-                4,
-                !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
-              ],
-            ],
-          ]
-      Type: container      
+      Type: container    
 
   GPUJobDefinition:
     Type: AWS::Batch::JobDefinition
@@ -1326,9 +1270,9 @@ Resources:
           - "-w"
           - "/work"
           - "-d"
-          - "/fsx"
+          - "/fsx/aws-rosettafold-ref-data"
           - "-x"
-          - "/fsx"
+          - "/fsx/aws-rosettafold-ref-data"
           - "-c"
           - "32"
           - "-m"
