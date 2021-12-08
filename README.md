@@ -23,45 +23,46 @@ This project demonstrates how to provision and use AWS services for running the 
 7. Download and extract the RoseTTAFold network weights (under [Rosetta-DL Software license](https://files.ipd.uw.edu/pub/RoseTTAFold/Rosetta-DL_LICENSE.txt)), and sequence and structure databases to the newly-created FSx for Lustre file system. There are two ways to do this:
 
 ### Option 1
-In the AWS Console, navigate to **EC2 > Launch Templates**, select the template named "aws-rosettafold-launch-template-<STACK ID>", and then **Actions > Launch instance from template**. Select the Amazon Linux 2 AMI and launch the instance into the public subnet with a public IP. SSH into the instance and download your network weights and reference data of interest to the attached `/fsx` volume (i.e. Installation steps 3 and 5 from the [RoseTTAFold public repository](https://github.com/RosettaCommons/RoseTTAFold))
+In the AWS Console, navigate to **EC2 > Launch Templates**, select the template named "aws-rosettafold-launch-template-<STACK ID>", and then **Actions > Launch instance from template**. Select the Amazon Linux 2 AMI and launch the instance into the public subnet with a public IP. SSH into the instance and download your network weights and reference data of interest to the attache volume at `/fsx/aws-rosettafold-ref-data` (i.e. Installation steps 3 and 5 from the [RoseTTAFold public repository](https://github.com/RosettaCommons/RoseTTAFold))
 
 ## Option 2
-Create a new S3 bucket in your region of interest. Spin up an EC2 instance in a public subnet in the same region and use this to download and extract the network weights and reference data. Once this is complete, copy the extracted data to S3. In the AWS Console, navigate to **FSx > File Systems** and select the FSx for Lustre file system created above. Link this file system to your new S3 bucket using [these instructions](https://docs.aws.amazon.com/fsx/latest/LustreGuide/create-dra-linked-data-repo.html#create-linked-dra). This is a good option if you want to create multiple stacks without downloading and extracting the reference data multiple times. Note that the first job you submit using this data repository will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 1-2 hours to complete.
+Create a new S3 bucket in your region of interest. Spin up an EC2 instance in a public subnet in the same region and use this to download and extract the network weights and reference data. Once this is complete, copy the extracted data to S3. In the AWS Console, navigate to **FSx > File Systems** and select the FSx for Lustre file system created above. Link this file system to your new S3 bucket using [these instructions](https://docs.aws.amazon.com/fsx/latest/LustreGuide/create-dra-linked-data-repo.html#create-linked-dra). Make sure to specify `/fsx/aws-rosettafold-ref-data` as the file system path when creating the data repository association. This is a good option if you want to create multiple stacks without downloading and extracting the reference data multiple times. Note that the first job you submit using this data repository will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 1-2 hours to complete.
 
 Once this is complete, your FSx for Lustre file system should look like this:
 
 ```
-/fsx
-├── bfd
-│   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_a3m.ffdata (1.4 TB)
-│   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_a3m.ffindex (1.7 GB)
-│   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_cs219.ffdata (15.7 GB)
-│   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_cs219.ffindex (1.6 GB)
-│   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_hhm.ffdata (304.4 GB)
-│   └── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_hhm.ffindex (123.6 MB)
-├── pdb100_2021Mar03
-│   ├── LICENSE (20.4 KB)
-│   ├── pdb100_2021Mar03_a3m.ffdata (633.9 GB)
-│   ├── pdb100_2021Mar03_a3m.ffindex (3.9 MB)
-│   ├── pdb100_2021Mar03_cs219.ffdata (41.8 MB)
-│   ├── pdb100_2021Mar03_cs219.ffindex (2.8 MB)
-│   ├── pdb100_2021Mar03_hhm.ffdata (6.8 GB)
-│   ├── pdb100_2021Mar03_hhm.ffindex (3.4 GB)
-│   ├── pdb100_2021Mar03_pdb.ffdata (26.2 GB)
-│   └── pdb100_2021Mar03_pdb.ffindex (3.7 MB)
-├── UniRef30_2020_06
-│   ├── UniRef30_2020_06_a3m.ffdata (139.6 GB)
-│   ├── UniRef30_2020_06_a3m.ffindex (671.0 MG)
-│   ├── UniRef30_2020_06_cs219.ffdata (6.0 GB)
-│   ├── UniRef30_2020_06_cs219.ffindex (605.0 MB)
-│   ├── UniRef30_2020_06_hhm.ffdata (34.1 GB)
-│   ├── UniRef30_2020_06_hhm.ffindex (19.4 MB)
-│   └── UniRef30_2020_06.md5sums (379.0 B)
-└── weights
-    ├── RF2t.pt (126 MB KB)
-    ├── Rosetta-DL_LICENSE.txt (3.1 KB)
-    ├── RoseTTAFold_e2e.pt (533 MB)
-    └── RoseTTAFold_pyrosetta.pt (506 MB)
+fsx
+└── aws-rosettafold-ref-data
+    ├── bfd
+    │   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_a3m.ffdata (1.4 TB)
+    │   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_a3m.ffindex (1.7 GB)
+    │   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_cs219.ffdata (15.7 GB)
+    │   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_cs219.ffindex (1.6 GB)
+    │   ├── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_hhm.ffdata (304.4 GB)
+    │   └── bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt_hhm.ffindex (123.6 MB)
+    ├── pdb100_2021Mar03
+    │   ├── LICENSE (20.4 KB)
+    │   ├── pdb100_2021Mar03_a3m.ffdata (633.9 GB)
+    │   ├── pdb100_2021Mar03_a3m.ffindex (3.9 MB)
+    │   ├── pdb100_2021Mar03_cs219.ffdata (41.8 MB)
+    │   ├── pdb100_2021Mar03_cs219.ffindex (2.8 MB)
+    │   ├── pdb100_2021Mar03_hhm.ffdata (6.8 GB)
+    │   ├── pdb100_2021Mar03_hhm.ffindex (3.4 GB)
+    │   ├── pdb100_2021Mar03_pdb.ffdata (26.2 GB)
+    │   └── pdb100_2021Mar03_pdb.ffindex (3.7 MB)
+    ├── UniRef30_2020_06
+    │   ├── UniRef30_2020_06_a3m.ffdata (139.6 GB)
+    │   ├── UniRef30_2020_06_a3m.ffindex (671.0 MG)
+    │   ├── UniRef30_2020_06_cs219.ffdata (6.0 GB)
+    │   ├── UniRef30_2020_06_cs219.ffindex (605.0 MB)
+    │   ├── UniRef30_2020_06_hhm.ffdata (34.1 GB)
+    │   ├── UniRef30_2020_06_hhm.ffindex (19.4 MB)
+    │   └── UniRef30_2020_06.md5sums (379.0 B)
+    └── weights
+        ├── RF2t.pt (126 MB KB)
+        ├── Rosetta-DL_LICENSE.txt (3.1 KB)
+        ├── RoseTTAFold_e2e.pt (533 MB)
+        └── RoseTTAFold_pyrosetta.pt (506 MB)
 
 ```
 8. Clone the CodeCommit repository created by CloudFormation to a Jupyter Notebook environment of your choice.
