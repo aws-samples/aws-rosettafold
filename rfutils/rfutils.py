@@ -120,8 +120,8 @@ def submit_rf_e2e_job(
     cpu=32,
     mem=96,
     gpu=2,
-    db_path="/fsx",
-    weights_path="/fsx",
+    db_path="/fsx/aws-rosettafold-ref-data",
+    weights_path="/fsx/aws-rosettafold-ref-data",
 ):
 
     """
@@ -485,7 +485,7 @@ def submit_rf_data_prep_job(
     job_queue="AWS-RoseTTAFold-CPU",
     cpu=16,
     mem=64,
-    db_path="/fsx",
+    db_path="/fsx/aws-rosettafold-ref-data",
 ):
 
     """
@@ -546,8 +546,8 @@ def submit_rf_predict_job(
     cpu=32,
     mem=96,
     gpu=2,
-    db_path="/fsx",
-    weights_path="/fsx",
+    db_path="/fsx/aws-rosettafold-ref-data",
+    weights_path="/fsx/aws-rosettafold-ref-data",
     depends_on="",
 ):
 
@@ -611,8 +611,8 @@ def submit_2_step_job(
     predict_cpu=32,
     predict_mem=96,
     predict_gpu=2,
-    db_path="/fsx",
-    weights_path="/fsx",
+    db_path="/fsx/aws-rosettafold-ref-data",
+    weights_path="/fsx/aws-rosettafold-ref-data",
 ):
 
     """
