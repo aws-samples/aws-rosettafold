@@ -258,18 +258,6 @@ Resources:
   ResultsS3:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName:
-        !Join [
-          "-",
-          [
-            "aws-rosettafold",
-            "s3",
-            !Select [
-              4,
-              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
-            ],
-          ],
-        ]
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
