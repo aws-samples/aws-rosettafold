@@ -861,7 +861,7 @@ def get_rosettafold_batch_resources(region="us-east-1"):
         columns=["stackId", "instanceType", "resourceType", "resourceName"],
     ).sort_values(by=["stackId", "instanceType"], ascending=False)
     df["type"] = df["instanceType"] + df["resourceType"]
-    df = df.pivot(index="stackId", columns=["type"], values=["resourceName"])
+    df = df.pivot(index="stackId", columns="type", values=["resourceName"])
     df.columns = df.columns.get_level_values(1)
     df = df.rename(
         columns={
