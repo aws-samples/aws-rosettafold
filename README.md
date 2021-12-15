@@ -14,7 +14,7 @@ This project demonstrates how to provision and use AWS services for running the 
 1. Log into the AWS Console.
 2. Click on *Launch Stack*:
 
-    [![Launch Stack](img/LaunchStack.jpg)](https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?templateURL=https://aws-rosettafold-ref-data.s3.amazonaws.com/cfn.yaml)
+    [![Launch Stack](img/LaunchStack.jpg)](https://console.aws.amazon.com/cloudformation/home#/stacks/create/review?templateURL=https://aws-hcls-ml.s3.amazonaws.com/blog_post_support_materials/aws-RoseTTAFold/cfn.yaml)
 
 3. For Stack Name, enter a unique name.
 4. Select an availability zone from the dropdown menu.
