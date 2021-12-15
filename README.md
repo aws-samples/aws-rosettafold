@@ -1,14 +1,6 @@
 # AWS RoseTTAFold
 Infrastructure template and Jupyter notebooks for running RoseTTAFold on AWS Batch. 
 
-## Security
-
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
-
-## License
-
-This library is licensed under the MIT-0 License. See the LICENSE file.
-
 ## Overview
 Proteins are large biomolecules that play an important role in the body. Knowing the physical structure of proteins is key to understanding their function. However, it can be difficult and expensive to determine the structure of many proteins experimentally. One alternative is to predict these structures using machine learning algorithms. Several high-profile research teams have released such algorithms, including AlphaFold 2 (from [DeepMind](https://deepmind.com/blog/article/alphafold-a-solution-to-a-50-year-old-grand-challenge-in-biology)) and RoseTTAFold (From the [Baker lab at the University of Washington](https://www.ipd.uw.edu/2021/07/rosettafold-accurate-protein-structure-prediction-accessible-to-all/)). 
 
@@ -31,10 +23,10 @@ This project demonstrates how to provision and use AWS services for running the 
 7. Download and extract the RoseTTAFold network weights (under [Rosetta-DL Software license](https://files.ipd.uw.edu/pub/RoseTTAFold/Rosetta-DL_LICENSE.txt)), and sequence and structure databases to the newly-created FSx for Lustre file system. There are two ways to do this:
 
 ### Option 1
-In the AWS Console, navigate to **EC2 > Launch Templates**, select the template named "aws-rosettafold-launch-template-<STACK ID>", and then **Actions > Launch instance from template**. Select the Amazon Linux 2 AMI and launch the instance into the public subnet with a public IP. SSH into the instance and download/extract your network weights and reference data of interest to the attached volume at `/fsx/aws-rosettafold-ref-data` (i.e. Installation steps 3 and 5 from the [RoseTTAFold public repository](https://github.com/RosettaCommons/RoseTTAFold))
+In the AWS Console, navigate to **EC2 > Launch Templates**, select the template beginning with "aws-rosettafold-launch-template-", and then **Actions > Launch instance from template**. Select the Amazon Linux 2 AMI and launch the instance into the public subnet with a public IP. SSH into the instance and download/extract your network weights and reference data of interest to the attached volume at `/fsx/aws-rosettafold-ref-data` (i.e. Installation steps 3 and 5 from the [RoseTTAFold public repository](https://github.com/RosettaCommons/RoseTTAFold))
 
-## Option 2
-Create a new S3 bucket in your region of interest. Spin up an EC2 instance in a public subnet in the same region and use this to download and extract the network weights and reference data. Once this is complete, copy the extracted data to S3. In the AWS Console, navigate to **FSx > File Systems** and select the FSx for Lustre file system created above. Link this file system to your new S3 bucket using [these instructions](https://docs.aws.amazon.com/fsx/latest/LustreGuide/create-dra-linked-data-repo.html#create-linked-dra). Specify `/aws-rosettafold-ref-data` as the file system path when creating the data repository association. This is a good option if you want to create multiple stacks without downloading and extracting the reference data multiple times. Note that the first job you submit using this data repository will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process will require 1-2 hours to complete.
+### Option 2
+Create a new S3 bucket in your region of interest. Spin up an EC2 instance in a public subnet in the same region and use this to download and extract the network weights and reference data. Once this is complete, copy the extracted data to S3. In the AWS Console, navigate to **FSx > File Systems** and select the FSx for Lustre file system created above. Link this file system to your new S3 bucket using [these instructions](https://docs.aws.amazon.com/fsx/latest/LustreGuide/create-dra-linked-data-repo.html#create-linked-dra). Specify `/aws-rosettafold-ref-data` as the file system path when creating the data repository association. This is a good option if you want to create multiple stacks without downloading and extracting the reference data multiple times. Note that the first job you submit using this data repository will cause the FSx file system to transfer and compress 3 TB of reference data from S3. This process may require as many as six hours to complete.
 
 Once this is complete, your FSx for Lustre file system should look like this when mounted to a volume:
 
@@ -84,7 +76,7 @@ This project creates two computing environments in AWS Batch to run the "end-to-
 
 A scientist can create structure prediction jobs using one of the two included Jupyter notebooks. `AWS-RoseTTAFold.ipynb` demonstrates how to submit a single analysis job and view the results. `CASP14-Analysis.ipynb` demonstrates how to submit multiple jobs at once using the CASP14 target list. In both of these cases, submitting a sequence for analysis creates two Batch jobs, one for data preparation (using the CPU computing environment) and a second, dependent job for structure prediction (using the GPU computing environment). 
 
-Both the data preparation and structure prediction use the same Docker image for execution. This image, based on the public Nvidia CUDA image for Ubuntu 20, includes the v1.1 release of the public [RoseTTAFold repository](https://github.com/RosettaCommons/RoseTTAFold), as well as additional scripts for integrating with AWS services. CodeBuild will automatically download this container definition and build the required image during stack creation. However, end users can make changes to this image by pushing to the CodeCommit repository included in the stack .
+Both the data preparation and structure prediction use the same Docker image for execution. This image, based on the public Nvidia CUDA image for Ubuntu 20, includes the v1.1 release of the public [RoseTTAFold repository](https://github.com/RosettaCommons/RoseTTAFold), as well as additional scripts for integrating with AWS services. CodeBuild will automatically download this container definition and build the required image during stack creation. However, end users can make changes to this image by pushing to the CodeCommit repository included in the stack. For example, users could replace the included MSA algorithm ([hhblits](https://github.com/soedinglab/hh-suite)) with an alternative like [MMseqs2](https://github.com/soedinglab/MMseqs2) or replace the RoseTTAFold network with an alternative like AlphaFold 2.
 
 ## Costs
 This workload costs approximately $217 per month to maintain, plus another $2.56 per job.
@@ -101,7 +93,13 @@ Running the CloudFormation template at `config/cfn.yaml` creates the following r
 5. CodeCommit, CodeBuild, CodePipeline, and ECR resources for building and publishing the Batch container image. When CloudFormation creates the CodeCommit repository, it populates it with a zipped version of this repository stored at `s3://aws-rosettafold-ref-data`. CodeBuild uses this repository as its source and adds additional code from release 1.1 of the public [RoseTTAFold repository](https://github.com/RosettaCommons/RoseTTAFold). CodeBuild then publishes the resulting container image to ECR, where Batch jobs can use it as needed.
 
 ## Licensing
+This library is licensed under the MIT-0 License. See the LICENSE file for more information.
+
 The University of Washington has made the code and data in the [RoseTTAFold public repository](https://github.com/RosettaCommons) available under an [MIT license](https://github.com/RosettaCommons/RoseTTAFold/blob/main/LICENSE). However, the model weights used for prediction are only available for internal, non-profit, non-commercial research use only. Fore information, please see the [full license agreement](https://files.ipd.uw.edu/pub/RoseTTAFold/Rosetta-DL_LICENSE.txt) and contact the University of Washington for details.
+
+## Security
+
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
 ## More Information
 - [University of Washington Institute for Protein Design](https://www.ipd.uw.edu/2021/07/rosettafold-accurate-protein-structure-prediction-accessible-to-all/)
