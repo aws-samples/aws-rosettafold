@@ -480,8 +480,8 @@ Resources:
       Code:
         BranchName: "main"
         S3:
-          Bucket: "aws-rosettafold-ref-data"
-          Key: aws-rosettafold.zip
+          Bucket: "aws-hcls-ml"
+          Key: "blog_post_support_materials/aws-RoseTTAFold/aws-rosettafold.zip"
       RepositoryDescription: Code for running RoseTTAFold on AWS
       RepositoryName:
         !Join [
