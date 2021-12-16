@@ -90,7 +90,7 @@ Running the CloudFormation template at `config/cfn.yaml` creates the following r
 2. A FSx Lustre file system with 1.2 TiB of storage and 120 MB/s throughput capacity. This file system can be linked to an S3 bucket for loading the required reference data when the first job executes.
 3. An EC2 launch template for mounting the FSX file system to Batch compute instances.
 4. A set of AWS Batch compute environments, job queues, and job definitions for running the CPU-dependent data prep job and a second for the GPU-dependent prediction job.
-5. CodeCommit, CodeBuild, CodePipeline, and ECR resources for building and publishing the Batch container image. When CloudFormation creates the CodeCommit repository, it populates it with a zipped version of this repository stored at `s3://aws-rosettafold-ref-data`. CodeBuild uses this repository as its source and adds additional code from release 1.1 of the public [RoseTTAFold repository](https://github.com/RosettaCommons/RoseTTAFold). CodeBuild then publishes the resulting container image to ECR, where Batch jobs can use it as needed.
+5. CodeCommit, CodeBuild, CodePipeline, and ECR resources for building and publishing the Batch container image. When CloudFormation creates the CodeCommit repository, it populates it with a zipped version of this repository stored in a public S3 bucket. CodeBuild uses this repository as its source and adds additional code from release 1.1 of the public [RoseTTAFold repository](https://github.com/RosettaCommons/RoseTTAFold). CodeBuild then publishes the resulting container image to ECR, where Batch jobs can use it as needed.
 
 ## Licensing
 This library is licensed under the MIT-0 License. See the LICENSE file for more information.
