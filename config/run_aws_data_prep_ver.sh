@@ -93,10 +93,12 @@ then
     $SCRIPTDIR/input_prep/make_msa.sh $IN $WDIR $CPU $MEM $DBDIR
 fi
 
+MSA_COUNT=`grep "^>" $WDIR/t000_.msa0.a3m -c`
+
 aws s3 cp $WDIR/t000_.msa0.a3m $OUTPUT_S3_FOLDER/$UUID.msa0.a3m
 
-DURATION=$[ $(date +%s) - ${MSA_START} ]
-echo "${UUID} MSA duration: ${DURATION} sec"
+MSA_DURATION=$[ $(date +%s) - ${MSA_START} ]
+echo "${UUID} MSA duration: ${MSA_DURATION} sec"
 
 ############################################################
 # 2. predict secondary structure for HHsearch run
@@ -111,8 +113,8 @@ fi
 
 aws s3 cp $WDIR/t000_.ss2 $OUTPUT_S3_FOLDER/$UUID.ss2
 
-DURATION=$[ $(date +%s) - ${SS_START} ]
-echo "${UUID} SS duration: ${DURATION} sec"
+SS_DURATION=$[ $(date +%s) - ${SS_START} ]
+echo "${UUID} SS duration: ${SS_DURATION} sec"
 
 ############################################################
 # 3. search for templates
@@ -127,16 +129,38 @@ then
     $HH -i $WDIR/t000_.msa0.ss2.a3m -o $WDIR/t000_.hhr -atab $WDIR/t000_.atab -v 2
 fi
 
+TEMPLATE_COUNT=`grep "^No \d*$" $WDIR/t000_.hhr -c`
+
 aws s3 cp $WDIR/t000_.msa0.ss2.a3m $OUTPUT_S3_FOLDER/$UUID.msa0.ss2.a3m
 aws s3 cp $WDIR/t000_.hhr $OUTPUT_S3_FOLDER/$UUID.hhr
 aws s3 cp $WDIR/t000_.atab $OUTPUT_S3_FOLDER/$UUID.atab
 
-DURATION=$[ $(date +%s) - ${TEMPLATE_START} ]
-echo "${UUID} template duration: ${DURATION} sec"
+TEMPLATE_DURATION=$[ $(date +%s) - ${TEMPLATE_START} ]
+echo "${UUID} template duration: ${TEMPLATE_DURATION} sec"
 
 # Remove the working directory to prevent issue with subsequent testing
 rm -rf $WDIR
 
-DURATION=$[ $(date +%s) - ${START} ]
-echo "${UUID} prep duration: ${DURATION} sec"
+TOTAL_DATA_PREP_DURATION=$[ $(date +%s) - ${START} ]
+echo "${UUID} prep duration: ${TOTAL_DATA_PREP_DURATION} sec"
+
+# Collect metrics
+echo "JOB_ID: ${UUID}" >> $WDIR/metrics_data_prep.yaml
+echo "INPUT_S3_FOLDER: ${INPUT_S3_FOLDER}" >> $WDIR/metrics_data_prep.yaml
+echo "INPUT_FILE: ${INPUT_S3_FILE}" >> $WDIR/metrics_data_prep.yaml
+echo "OUTPUT_S3_FOLDER: ${OUTPUT_S3_FOLDER}" >> $WDIR/metrics_data_prep.yaml
+echo "WDIR: ${WDIR}" >> $WDIR/metrics_data_prep.yaml
+echo "DBDIR: ${DBDIR}" >> $WDIR/metrics_data_prep.yaml
+echo "CPU: ${CPU}" >> $WDIR/metrics_data_prep.yaml
+echo "MEM: ${MEM}" >> $WDIR/metrics_data_prep.yaml
+echo "MSA_COUNT: ${MSA_COUNT}" >> $WDIR/metrics_data_prep.yaml
+echo "TEMPLATE_COUNT: ${TEMPLATE_COUNT}" >> $WDIR/metrics_data_prep.yaml
+echo "START_TIME: ${START}" >> $WDIR/metrics_data_prep.yaml
+echo "MSA_DURATION: ${MSA_DURATION}" >> $WDIR/metrics_data_prep.yaml
+echo "SS_DURATION: ${SS_DURATION}" >> $WDIR/metrics_data_prep.yaml
+echo "TEMPLATE_DURATION: ${TEMPLATE_DURATION}" >> $WDIR/metrics_data_prep.yaml
+echo "TOTAL_DATA_PREP_DURATION: ${TOTAL_DATA_PREP_DURATION}" >> $WDIR/metrics_data_prep.yaml
+
+aws s3 cp $WDIR/metrics_data_prep.yaml $OUTPUT_S3_FOLDER/metrics_data_prep.yaml
+
 echo "Done"
