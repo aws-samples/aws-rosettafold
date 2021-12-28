@@ -129,7 +129,7 @@ then
     $HH -i $WDIR/t000_.msa0.ss2.a3m -o $WDIR/t000_.hhr -atab $WDIR/t000_.atab -v 2
 fi
 
-TEMPLATE_COUNT=`grep "^No \d*$" $WDIR/t000_.hhr -c`
+TEMPLATE_COUNT=`grep "^No [[:digit:]]*$" $WDIR/t000_.hhr -c`
 
 aws s3 cp $WDIR/t000_.msa0.ss2.a3m $OUTPUT_S3_FOLDER/$UUID.msa0.ss2.a3m
 aws s3 cp $WDIR/t000_.hhr $OUTPUT_S3_FOLDER/$UUID.hhr
