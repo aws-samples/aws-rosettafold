@@ -91,83 +91,70 @@ def create_job_name(suffix=None):
         return datetime.utcnow().strftime("%Y%m%dT%H%M%S") + "_" + suffix
 
 
-def upload_fasta_to_s3(
-    record, bucket=sm_session.default_bucket(), job_name=uuid.uuid4()
+def display_msa(jobId, bucket):
+    """
+    Display the MSA plot in a Jupyter notebook cell
+    """
+
+    info = get_batch_job_info(jobId)
+
+    if info["status"] == "SUCCEEDED":
+        print(
+            f"Downloading MSA file from s3://{bucket}/{info['jobName']}/{info['jobName']}.msa0.a3m"
+        )
+        s3.download_file(
+            bucket,
+            f"{info['jobName']}/{info['jobName']}.msa0.a3m",
+            "data/alignment.msa",
+        )
+        msa_all = parse_a3m("data/alignment.msa")
+        plot_msa_info(msa_all)
+    else:
+        print(
+            f"Data prep job {info['jobId']} is in {info['status']} status. Please try again once the job has completed."
+        )
+
+
+def display_structure(
+    jobId,
+    bucket,
+    color="lDDT",
+    show_sidechains=False,
+    show_mainchains=False,
+    chains=1,
+    vmin=0.5,
+    vmax=0.9,
 ):
-
     """
-    Create a fasta file and upload it to S3.
+    Display the predicted structure in a Jupyter notebook cell
     """
+    if color not in ["chain", "lDDT", "rainbow"]:
+        raise ValueError("Color must be 'LDDT' (default), 'chain', or 'rainbow'")
 
-    s3 = boto3.client("s3", region_name=region)
-    file_out = "_tmp.fasta"
-    with open(file_out, "w") as f_out:
-        SeqIO.write(record, f_out, "fasta")
-    object_name = f"{job_name}/input.fa"
-    response = s3.upload_file(file_out, bucket, object_name)
-    os.remove(file_out)
-    s3_uri = f"s3://{bucket}/{object_name}"
-    print(f"Sequence file uploaded to {s3_uri}")
-    return s3_uri
+    info = get_batch_job_info(jobId)
 
-
-def submit_rf_e2e_job(
-    bucket=sm_session.default_bucket(),
-    job_name=uuid.uuid4(),
-    input_file="input.fa",
-    job_definition="AWS-RoseTTAFold",
-    job_queue="RoseTTAFold-GPU",
-    cpu=32,
-    mem=96,
-    gpu=2,
-    db_path="/fsx/aws-rosettafold-ref-data",
-    weights_path="/fsx/aws-rosettafold-ref-data",
-):
-
-    """
-    Submit RoseTTAFold job to AWS Batch.
-    """
-
-    working_folder = f"s3://{bucket}/{job_name}"
-    batch_client = boto3.client("batch")
-    output_pdb_uri = f"{working_folder}/{job_name}.e2e.pdb"
-
-    response = batch_client.submit_job(
-        jobDefinition=job_definition,
-        jobName=str(job_name),
-        jobQueue=job_queue,
-        containerOverrides={
-            "command": [
-                "-i",
-                working_folder,
-                "-n",
-                input_file,
-                "-o",
-                working_folder,
-                "-p",
-                job_name,
-                "-w",
-                "/work",
-                "-d",
-                db_path,
-                "-x",
-                weights_path,
-                "-c",
-                str(cpu),
-                "-m",
-                str(mem),
-            ],
-            "environment": [{"name": "CUDA_VISIBLE_DEVICES", "value": str(gpu)}],
-            "resourceRequirements": [
-                {"value": str(gpu), "type": "GPU"},
-                {"value": str(cpu), "type": "VCPU"},
-                {"value": str(mem * 1000), "type": "MEMORY"},
-            ],
-        },
-        tags={"output_pdb_uri": output_pdb_uri},
-    )
-    print(f"Job ID {response['jobId']} submitted")
-    return response
+    if info["status"] == "SUCCEEDED":
+        print(
+            f"Downloading PDB file from s3://{bucket}/{info['jobName']}/{info['jobName']}.e2e.pdb"
+        )
+        s3.download_file(
+            bucket, f"{info['jobName']}/{info['jobName']}.e2e.pdb", "data/e2e.pdb"
+        )
+        plot_pdb(
+            "data/e2e.pdb",
+            show_sidechains=show_sidechains,
+            show_mainchains=show_mainchains,
+            color=color,
+            chains=chains,
+            vmin=vmin,
+            vmax=vmax,
+        ).show()
+        if color == "lDDT":
+            plot_plddt_legend().show()
+    else:
+        print(
+            f"{info['jobId']} is in {info['status']} status. Please try again once the job has completed."
+        )
 
 
 def get_batch_job_info(jobId):
@@ -220,27 +207,159 @@ def get_batch_logs(logStreamName):
     return logs
 
 
-def wait_for_job_start(jobId, pause=30):
+def get_rf_job_info(
+    cpu_queue="AWS-RoseTTAFold-CPU", gpu_queue="AWS-RoseTTAFold-GPU", hrs_in_past=1
+):
 
     """
-    Pause while a job transitions into a running state.
+    Display information about recent AWS-RoseTTAFold jobs
+    """
+    from datetime import datetime
+
+    batch_client = boto3.client("batch")
+    recent_jobs = list_recent_jobs([cpu_queue, gpu_queue], hrs_in_past)
+    recent_job_df = pd.DataFrame.from_dict(recent_jobs)
+    list_of_lists = []
+    if len(recent_job_df) > 0:
+        detail_list = batch_client.describe_jobs(jobs=recent_job_df.jobId.to_list())
+        for job in detail_list["jobs"]:
+            resource_dict = {}
+            for resource in job["container"]["resourceRequirements"]:
+                resource_dict[resource["type"]] = resource["value"]
+            row = [
+                job["jobName"],
+                job["jobId"],
+                job["jobQueue"],
+                job["status"],
+                datetime.fromtimestamp(job["createdAt"] / 1000),
+                datetime.fromtimestamp(job["startedAt"] / 1000)
+                if "startedAt" in job
+                else "NaT",
+                datetime.fromtimestamp(job["stoppedAt"] / 1000)
+                if "stoppedAt" in job
+                else "NaT",
+                str(
+                    datetime.fromtimestamp(job["stoppedAt"] / 1000)
+                    - datetime.fromtimestamp(job["startedAt"] / 1000)
+                )
+                if "startedAt" in job and "stoppedAt" in job
+                else "NaN",
+                (job["stoppedAt"] / 1000) - (job["startedAt"] / 1000)
+                if "startedAt" in job and "stoppedAt" in job
+                else "NaN",
+                job["jobDefinition"],
+                job["container"]["logStreamName"]
+                if "logStreamName" in job["container"]
+                else "",
+                int(resource_dict["VCPU"]),
+                int(float(resource_dict["MEMORY"]) / 1000),
+                int(resource_dict["GPU"]) if "GPU" in resource_dict else 0,
+            ]
+            list_of_lists.append(row)
+
+    return pd.DataFrame(
+        list_of_lists,
+        columns=[
+            "jobName",
+            "jobId",
+            "jobQueue",
+            "status",
+            "createdAt",
+            "startedAt",
+            "stoppedAt",
+            "duration",
+            "duration_sec",
+            "jobDefinition",
+            "logStreamName",
+            "vCPUs",
+            "mem_GB",
+            "GPUs",
+        ],
+    ).sort_values(by="jobName", ascending=False)
+
+
+def get_rosettafold_batch_resources(region="us-east-1"):
+    """
+    Retrieve a list of batch job definitions and queues created as part of an
+    AWS-RoseTTAFold stack.
+    """
+    batch = boto3.client("batch", region_name=region)
+
+    job_definition_response = batch.describe_job_definitions()
+    list_of_lists = []
+
+    job_list = []
+    for jd in job_definition_response["jobDefinitions"]:
+        if (
+            jd["status"] == "ACTIVE"
+            and "aws-rosettafold-job-def" in jd["jobDefinitionName"]
+        ):
+            name_split = jd["jobDefinitionName"].split("-")
+            entry = {
+                "stackId": name_split[5],
+                "dataPrepJobDefinition": jd["jobDefinitionName"],
+            }
+            row = [
+                name_split[5],
+                name_split[4],
+                "Job Definition",
+                jd["jobDefinitionName"],
+            ]
+            job_list.append(row)
+
+    job_queue_response = batch.describe_job_queues()
+    jq_list = []
+    for jq in job_queue_response["jobQueues"]:
+        if (
+            jq["state"] == "ENABLED"
+            and jq["status"] == "VALID"
+            and "aws-rosettafold-queue" in jq["jobQueueName"]
+        ):
+            name_split = jq["jobQueueName"].split("-")
+            row = [name_split[4], name_split[3], "Job Queue", jq["jobQueueName"]]
+            job_list.append(row)
+
+    df = pd.DataFrame(
+        job_list,
+        columns=["stackId", "instanceType", "resourceType", "resourceName"],
+    ).sort_values(by=["stackId", "instanceType"], ascending=False)
+    df["type"] = df["instanceType"] + df["resourceType"]
+    df = df.pivot(index="stackId", columns="type", values=["resourceName"])
+    df.columns = df.columns.get_level_values(1)
+    df = df.rename(
+        columns={
+            "cpuJob Definition": "dataPrepJobDefinition",
+            "cpuJob Queue": "dataPrepJobQueue",
+            "gpuJob Definition": "predictJobDefinition",
+            "gpuJob Queue": "predictJobQueue",
+        }
+    )
+    return df
+
+
+def list_recent_jobs(job_queues, hrs_in_past=1):
+
+    """
+    Display recently-submitted jobs.
     """
 
-    status = get_batch_job_info(jobId)["status"]
-    print(status)
-    while get_batch_job_info(jobId)["status"] in [
-        "SUBMITTED",
-        "PENDING",
-        "RUNNABLE",
-        "STARTING",
-    ]:
-        sleep(30)
-        new_status = get_batch_job_info(jobId)["status"]
-        if new_status != status:
-            print("\n" + new_status)
-        else:
-            print(".", end="")
-        status = new_status
+    batch_client = boto3.client("batch")
+    result = []
+    for queue in job_queues:
+        recent_queue_jobs = batch_client.list_jobs(
+            jobQueue=queue,
+            filters=[
+                {
+                    "name": "AFTER_CREATED_AT",
+                    "values": [
+                        str(round(datetime.now().timestamp()) - (hrs_in_past * 3600))
+                    ],
+                }
+            ],
+        )
+        result = result + recent_queue_jobs["jobSummaryList"]
+
+    return result
 
 
 def parse_a3m(filename):
@@ -300,6 +419,47 @@ def read_pdb_renum(pdb_filename, Ls=None):
                     "%s%s%4i%s" % (line[:21], new_chain[n - 1], n, line[26:])
                 )
     return "".join(pdb_out)
+
+
+def plot_msa_info(msa):
+
+    """
+    Plot a representation of the MSA coverage.
+    Copied from https://github.com/sokrypton/ColabFold/blob/main/beta/colabfold.py
+    """
+
+    msa_arr = np.unique(msa, axis=0)
+    total_msa_size = len(msa_arr)
+    print(f"\n{total_msa_size} Sequences Found in Total\n")
+
+    if total_msa_size > 1:
+        plt.figure(figsize=(8, 5), dpi=100)
+        plt.title("Sequence coverage")
+        seqid = (msa[0] == msa_arr).mean(-1)
+        seqid_sort = seqid.argsort()
+        non_gaps = (msa_arr != 20).astype(float)
+        non_gaps[non_gaps == 0] = np.nan
+        plt.imshow(
+            non_gaps[seqid_sort] * seqid[seqid_sort, None],
+            interpolation="nearest",
+            aspect="auto",
+            cmap="rainbow_r",
+            vmin=0,
+            vmax=1,
+            origin="lower",
+            extent=(0, msa_arr.shape[1], 0, msa_arr.shape[0]),
+        )
+        plt.plot((msa_arr != 20).sum(0), color="black")
+        plt.xlim(0, msa_arr.shape[1])
+        plt.ylim(0, msa_arr.shape[0])
+        plt.colorbar(
+            label="Sequence identity to query",
+        )
+        plt.xlabel("Positions")
+        plt.ylabel("Sequences")
+        plt.show()
+    else:
+        print("Unable to display MSA of length 1")
 
 
 def plot_pdb(
@@ -436,45 +596,59 @@ def plot_plddt_legend(dpi=100):
     return plt
 
 
-def plot_msa_info(msa):
+def submit_2_step_job(
+    bucket=sm_session.default_bucket(),
+    job_name=uuid.uuid4(),
+    data_prep_input_file="input.fa",
+    data_prep_job_definition="AWS-RoseTTAFold-CPU",
+    data_prep_queue="AWS-RoseTTAFold-CPU",
+    data_prep_cpu=16,
+    data_prep_mem=64,
+    predict_job_definition="AWS-RoseTTAFold-GPU",
+    predict_queue="AWS-RoseTTAFold-GPU",
+    predict_cpu=32,
+    predict_mem=96,
+    predict_gpu=2,
+    db_path="/fsx/aws-rosettafold-ref-data",
+    weights_path="/fsx/aws-rosettafold-ref-data",
+):
 
     """
-    Plot a representation of the MSA coverage.
-    Copied from https://github.com/sokrypton/ColabFold/blob/main/beta/colabfold.py
+    Submit a 2-step RoseTTAFold prediction job  to AWS Batch.
     """
 
-    msa_arr = np.unique(msa, axis=0)
-    total_msa_size = len(msa_arr)
-    print(f"\n{total_msa_size} Sequences Found in Total\n")
+    working_folder = f"s3://{bucket}/{job_name}"
+    batch_client = boto3.client("batch")
+    output_pdb_uri = f"{working_folder}/{job_name}.e2e.pdb"
 
-    if total_msa_size > 1:
-        plt.figure(figsize=(8, 5), dpi=100)
-        plt.title("Sequence coverage")
-        seqid = (msa[0] == msa_arr).mean(-1)
-        seqid_sort = seqid.argsort()
-        non_gaps = (msa_arr != 20).astype(float)
-        non_gaps[non_gaps == 0] = np.nan
-        plt.imshow(
-            non_gaps[seqid_sort] * seqid[seqid_sort, None],
-            interpolation="nearest",
-            aspect="auto",
-            cmap="rainbow_r",
-            vmin=0,
-            vmax=1,
-            origin="lower",
-            extent=(0, msa_arr.shape[1], 0, msa_arr.shape[0]),
-        )
-        plt.plot((msa_arr != 20).sum(0), color="black")
-        plt.xlim(0, msa_arr.shape[1])
-        plt.ylim(0, msa_arr.shape[0])
-        plt.colorbar(
-            label="Sequence identity to query",
-        )
-        plt.xlabel("Positions")
-        plt.ylabel("Sequences")
-        plt.show()
-    else:
-        print("Unable to display MSA of length 1")
+    data_prep_response = submit_rf_data_prep_job(
+        bucket=bucket,
+        job_name=job_name,
+        input_file=data_prep_input_file,
+        job_definition=data_prep_job_definition,
+        job_queue=data_prep_queue,
+        cpu=data_prep_cpu,
+        mem=data_prep_mem,
+        db_path=db_path,
+    )
+
+    predict_response = submit_rf_predict_job(
+        bucket=bucket,
+        job_name=job_name,
+        job_definition=predict_job_definition,
+        job_queue=predict_queue,
+        cpu=predict_cpu,
+        mem=predict_mem,
+        gpu=predict_gpu,
+        db_path=db_path,
+        weights_path=weights_path,
+        depends_on=data_prep_response["jobId"],
+    )
+
+    print(
+        f"Data prep job ID {data_prep_response['jobId']} and predict job ID {predict_response['jobId']} submitted"
+    )
+    return [data_prep_response, predict_response]
 
 
 def submit_rf_data_prep_job(
@@ -598,277 +772,44 @@ def submit_rf_predict_job(
     return response
 
 
-def submit_2_step_job(
-    bucket=sm_session.default_bucket(),
-    job_name=uuid.uuid4(),
-    data_prep_input_file="input.fa",
-    data_prep_job_definition="AWS-RoseTTAFold-CPU",
-    data_prep_queue="AWS-RoseTTAFold-CPU",
-    data_prep_cpu=16,
-    data_prep_mem=64,
-    predict_job_definition="AWS-RoseTTAFold-GPU",
-    predict_queue="AWS-RoseTTAFold-GPU",
-    predict_cpu=32,
-    predict_mem=96,
-    predict_gpu=2,
-    db_path="/fsx/aws-rosettafold-ref-data",
-    weights_path="/fsx/aws-rosettafold-ref-data",
+def upload_fasta_to_s3(
+    record, bucket=sm_session.default_bucket(), job_name=uuid.uuid4()
 ):
 
     """
-    Submit a 2-step RoseTTAFold prediction job  to AWS Batch.
+    Create a fasta file and upload it to S3.
     """
 
-    working_folder = f"s3://{bucket}/{job_name}"
-    batch_client = boto3.client("batch")
-    output_pdb_uri = f"{working_folder}/{job_name}.e2e.pdb"
-
-    data_prep_response = submit_rf_data_prep_job(
-        bucket=bucket,
-        job_name=job_name,
-        input_file=data_prep_input_file,
-        job_definition=data_prep_job_definition,
-        job_queue=data_prep_queue,
-        cpu=data_prep_cpu,
-        mem=data_prep_mem,
-        db_path=db_path,
-    )
-
-    predict_response = submit_rf_predict_job(
-        bucket=bucket,
-        job_name=job_name,
-        job_definition=predict_job_definition,
-        job_queue=predict_queue,
-        cpu=predict_cpu,
-        mem=predict_mem,
-        gpu=predict_gpu,
-        db_path=db_path,
-        weights_path=weights_path,
-        depends_on=data_prep_response["jobId"],
-    )
-
-    print(
-        f"Data prep job ID {data_prep_response['jobId']} and predict job ID {predict_response['jobId']} submitted"
-    )
-    return [data_prep_response, predict_response]
+    s3 = boto3.client("s3", region_name=region)
+    file_out = "_tmp.fasta"
+    with open(file_out, "w") as f_out:
+        SeqIO.write(record, f_out, "fasta")
+    object_name = f"{job_name}/input.fa"
+    response = s3.upload_file(file_out, bucket, object_name)
+    os.remove(file_out)
+    s3_uri = f"s3://{bucket}/{object_name}"
+    print(f"Sequence file uploaded to {s3_uri}")
+    return s3_uri
 
 
-def list_recent_jobs(job_queues, hrs_in_past=1):
+def wait_for_job_start(jobId, pause=30):
 
     """
-    Display recently-submitted jobs.
+    Pause while a job transitions into a running state.
     """
 
-    batch_client = boto3.client("batch")
-    result = []
-    for queue in job_queues:
-        recent_queue_jobs = batch_client.list_jobs(
-            jobQueue=queue,
-            filters=[
-                {
-                    "name": "AFTER_CREATED_AT",
-                    "values": [
-                        str(round(datetime.now().timestamp()) - (hrs_in_past * 3600))
-                    ],
-                }
-            ],
-        )
-        result = result + recent_queue_jobs["jobSummaryList"]
-
-    return result
-
-
-def get_rf_job_info(
-    cpu_queue="AWS-RoseTTAFold-CPU", gpu_queue="AWS-RoseTTAFold-GPU", hrs_in_past=1
-):
-
-    """
-    Display information about recent AWS-RoseTTAFold jobs
-    """
-    from datetime import datetime
-
-    batch_client = boto3.client("batch")
-    recent_jobs = list_recent_jobs([cpu_queue, gpu_queue], hrs_in_past)
-    recent_job_df = pd.DataFrame.from_dict(recent_jobs)
-    list_of_lists = []
-    if len(recent_job_df) > 0:
-        detail_list = batch_client.describe_jobs(jobs=recent_job_df.jobId.to_list())
-        for job in detail_list["jobs"]:
-            resource_dict = {}
-            for resource in job["container"]["resourceRequirements"]:
-                resource_dict[resource["type"]] = resource["value"]
-            row = [
-                job["jobName"],
-                job["jobId"],
-                job["jobQueue"],
-                job["status"],
-                datetime.fromtimestamp(job["createdAt"] / 1000),
-                datetime.fromtimestamp(job["startedAt"] / 1000)
-                if "startedAt" in job
-                else "NaT",
-                datetime.fromtimestamp(job["stoppedAt"] / 1000)
-                if "stoppedAt" in job
-                else "NaT",
-                str(
-                    datetime.fromtimestamp(job["stoppedAt"] / 1000)
-                    - datetime.fromtimestamp(job["startedAt"] / 1000)
-                )
-                if "startedAt" in job and "stoppedAt" in job
-                else "NaN",
-                (job["stoppedAt"] / 1000) - (job["startedAt"] / 1000)
-                if "startedAt" in job and "stoppedAt" in job
-                else "NaN",
-                job["jobDefinition"],
-                job["container"]["logStreamName"]
-                if "logStreamName" in job["container"]
-                else "",
-                int(resource_dict["VCPU"]),
-                int(float(resource_dict["MEMORY"]) / 1000),
-                int(resource_dict["GPU"]) if "GPU" in resource_dict else 0,
-            ]
-            list_of_lists.append(row)
-
-    return pd.DataFrame(
-        list_of_lists,
-        columns=[
-            "jobName",
-            "jobId",
-            "jobQueue",
-            "status",
-            "createdAt",
-            "startedAt",
-            "stoppedAt",
-            "duration",
-            "duration_sec",
-            "jobDefinition",
-            "logStreamName",
-            "vCPUs",
-            "mem_GB",
-            "GPUs",
-        ],
-    ).sort_values(by="jobName", ascending=False)
-
-
-def display_msa(jobId, bucket):
-    """
-    Display the MSA plot in a Jupyter notebook cell
-    """
-
-    info = get_batch_job_info(jobId)
-
-    if info["status"] == "SUCCEEDED":
-        print(
-            f"Downloading MSA file from s3://{bucket}/{info['jobName']}/{info['jobName']}.msa0.a3m"
-        )
-        s3.download_file(
-            bucket,
-            f"{info['jobName']}/{info['jobName']}.msa0.a3m",
-            "data/alignment.msa",
-        )
-        msa_all = parse_a3m("data/alignment.msa")
-        plot_msa_info(msa_all)
-    else:
-        print(
-            f"Data prep job {info['jobId']} is in {info['status']} status. Please try again once the job has completed."
-        )
-
-
-def display_structure(
-    jobId,
-    bucket,
-    color="lDDT",
-    show_sidechains=False,
-    show_mainchains=False,
-    chains=1,
-    vmin=0.5,
-    vmax=0.9,
-):
-    """
-    Display the predicted structure in a Jupyter notebook cell
-    """
-    if color not in ["chain", "lDDT", "rainbow"]:
-        raise ValueError("Color must be 'LDDT' (default), 'chain', or 'rainbow'")
-
-    info = get_batch_job_info(jobId)
-
-    if info["status"] == "SUCCEEDED":
-        print(
-            f"Downloading PDB file from s3://{bucket}/{info['jobName']}/{info['jobName']}.e2e.pdb"
-        )
-        s3.download_file(
-            bucket, f"{info['jobName']}/{info['jobName']}.e2e.pdb", "data/e2e.pdb"
-        )
-        plot_pdb(
-            "data/e2e.pdb",
-            show_sidechains=show_sidechains,
-            show_mainchains=show_mainchains,
-            color=color,
-            chains=chains,
-            vmin=vmin,
-            vmax=vmax,
-        ).show()
-        if color == "lDDT":
-            plot_plddt_legend().show()
-    else:
-        print(
-            f"{info['jobId']} is in {info['status']} status. Please try again once the job has completed."
-        )
-
-
-def get_rosettafold_batch_resources(region="us-east-1"):
-    """
-    Retrieve a list of batch job definitions and queues created as part of an
-    AWS-RoseTTAFold stack.
-    """
-    batch = boto3.client("batch", region_name=region)
-
-    job_definition_response = batch.describe_job_definitions()
-    list_of_lists = []
-
-    job_list = []
-    for jd in job_definition_response["jobDefinitions"]:
-        if (
-            jd["status"] == "ACTIVE"
-            and "aws-rosettafold-job-def" in jd["jobDefinitionName"]
-        ):
-            name_split = jd["jobDefinitionName"].split("-")
-            entry = {
-                "stackId": name_split[5],
-                "dataPrepJobDefinition": jd["jobDefinitionName"],
-            }
-            row = [
-                name_split[5],
-                name_split[4],
-                "Job Definition",
-                jd["jobDefinitionName"],
-            ]
-            job_list.append(row)
-
-    job_queue_response = batch.describe_job_queues()
-    jq_list = []
-    for jq in job_queue_response["jobQueues"]:
-        if (
-            jq["state"] == "ENABLED"
-            and jq["status"] == "VALID"
-            and "aws-rosettafold-queue" in jq["jobQueueName"]
-        ):
-            name_split = jq["jobQueueName"].split("-")
-            row = [name_split[4], name_split[3], "Job Queue", jq["jobQueueName"]]
-            job_list.append(row)
-
-    df = pd.DataFrame(
-        job_list,
-        columns=["stackId", "instanceType", "resourceType", "resourceName"],
-    ).sort_values(by=["stackId", "instanceType"], ascending=False)
-    df["type"] = df["instanceType"] + df["resourceType"]
-    df = df.pivot(index="stackId", columns="type", values=["resourceName"])
-    df.columns = df.columns.get_level_values(1)
-    df = df.rename(
-        columns={
-            "cpuJob Definition": "dataPrepJobDefinition",
-            "cpuJob Queue": "dataPrepJobQueue",
-            "gpuJob Definition": "predictJobDefinition",
-            "gpuJob Queue": "predictJobQueue",
-        }
-    )
-    return df
+    status = get_batch_job_info(jobId)["status"]
+    print(status)
+    while get_batch_job_info(jobId)["status"] in [
+        "SUBMITTED",
+        "PENDING",
+        "RUNNABLE",
+        "STARTING",
+    ]:
+        sleep(30)
+        new_status = get_batch_job_info(jobId)["status"]
+        if new_status != status:
+            print("\n" + new_status)
+        else:
+            print(".", end="")
+        status = new_status
