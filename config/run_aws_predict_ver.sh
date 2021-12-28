@@ -62,7 +62,7 @@ done
 [ -z "$MODEL_WEIGHTS_DIR" ] && { MODEL_WEIGHTS_DIR=$WDIR; }
 [ -z "$CPU" ] && { CPU="16"; }
 [ -z "$MEM" ] && { MEM="64"; }
-[ -z "$CUDA_VISIBLE_DEVICES" ] && { CUDA_VISIBLE_DEVICES="?"; }
+[ -z "$CUDA_VISIBLE_DEVICES" ] && { CUDA_VISIBLE_DEVICES="99"; }
 
 if [ -z "$UUID" ]
 then
@@ -123,8 +123,5 @@ echo "  START_TIME: ${PREDICT_START}" >> $WDIR/metrics.yaml
 echo "  TOTAL_PREDICT_DURATION: ${TOTAL_PREDICT_DURATION}" >> $WDIR/metrics.yaml
 
 aws s3 cp $WDIR/metrics.yaml $OUTPUT_S3_FOLDER/metrics.yaml
-
-# Remove the working directory to prevent issue with subsequent testing
-rm -rf $WDIR
 
 echo "Done"
