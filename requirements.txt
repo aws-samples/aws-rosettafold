@@ -3,3 +3,4 @@ py3Dmol
 boto3
 sagemaker
 matplotlib
+pyyaml

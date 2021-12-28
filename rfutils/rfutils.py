@@ -13,6 +13,7 @@ import numpy as np
 import os
 import pandas as pd
 import py3Dmol
+import yaml
 from re import sub
 import sagemaker
 import string
@@ -277,6 +278,24 @@ def get_rf_job_info(
         ],
     ).sort_values(by="jobName", ascending=False)
 
+def get_rf_job_metrics(job_name, bucket, region='us-east-1'):
+    """
+    Retrieve RF job metrics from the metrics.yaml file
+    """
+
+    s3.download_file(
+            bucket,
+            f"{job_name}/metrics.yaml",
+            "data/metrics.yaml",
+        )
+
+    with open("data/metrics.yaml", "r") as stream:
+        try:
+            metrics = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+    return metrics
 
 def get_rosettafold_batch_resources(region="us-east-1"):
     """
