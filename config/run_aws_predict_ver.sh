@@ -114,7 +114,7 @@ echo "  JOB_ID: ${UUID}" >> $WDIR/metrics.yaml
 echo "  INPUT_S3_FOLDER: ${INPUT_S3_FOLDER}" >> $WDIR/metrics.yaml
 echo "  OUTPUT_S3_FOLDER: ${OUTPUT_S3_FOLDER}" >> $WDIR/metrics.yaml
 echo "  WDIR: ${WDIR}" >> $WDIR/metrics_data_prep.yaml
-echo "  DBDIR: ${DBDIR}" >> $WDIR/metrics.yam\
+echo "  DBDIR: ${DBDIR}" >> $WDIR/metrics.yaml
 echo "  MODEL_WEIGHTS_DIR: ${MODEL_WEIGHTS_DIR}" >> $WDIR/metrics.yaml
 echo "  CPU: ${CPU}" >> $WDIR/metrics.yaml
 echo "  MEM: ${MEM}" >> $WDIR/metrics.yaml
