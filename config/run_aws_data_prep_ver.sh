@@ -77,7 +77,7 @@ IN=$WDIR/input.fa
 aws s3 cp $INPUT_S3_FOLDER/$INPUT_FILE $IN
 
 ls $WDIR
-LEN=`tail -n1 $IN | wc -m`
+LENGTH=`tail -n1 $IN | wc -m`
 
 conda activate RoseTTAFold
 
@@ -151,6 +151,7 @@ echo "  WDIR: ${WDIR}" >> $WDIR/metrics.yaml
 echo "  DBDIR: ${DBDIR}" >> $WDIR/metrics.yaml
 echo "  CPU: ${CPU}" >> $WDIR/metrics.yaml
 echo "  MEM: ${MEM}" >> $WDIR/metrics.yaml
+echo "  LENGTH: ${LENGTH}" >> $WDIR/metrics.yaml
 echo "  MSA_COUNT: ${MSA_COUNT}" >> $WDIR/metrics.yaml
 echo "  TEMPLATE_COUNT: ${TEMPLATE_COUNT}" >> $WDIR/metrics.yaml
 echo "  START_TIME: ${START}" >> $WDIR/metrics.yaml
