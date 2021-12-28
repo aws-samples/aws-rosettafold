@@ -136,13 +136,10 @@ aws s3 cp $WDIR/t000_.hhr $OUTPUT_S3_FOLDER/$UUID.hhr
 aws s3 cp $WDIR/t000_.atab $OUTPUT_S3_FOLDER/$UUID.atab
 
 TEMPLATE_DURATION=$[ $(date +%s) - ${TEMPLATE_START} ]
-echo "${UUID} template duration: ${TEMPLATE_DURATION} sec"
-
-# Remove the working directory to prevent issue with subsequent testing
-rm -rf $WDIR
+echo "${UUID} template search duration: ${TEMPLATE_DURATION} sec"
 
 TOTAL_DATA_PREP_DURATION=$[ $(date +%s) - ${START} ]
-echo "${UUID} prep duration: ${TOTAL_DATA_PREP_DURATION} sec"
+echo "${UUID} total data prep duration: ${TOTAL_DATA_PREP_DURATION} sec"
 
 # Collect metrics
 echo "DATA_PREP:" >> $WDIR/metrics.yaml
