@@ -81,6 +81,7 @@ conda activate RoseTTAFold
 aws s3 cp $INPUT_S3_FOLDER/$UUID.msa0.a3m $WDIR/t000_.msa0.a3m 
 aws s3 cp $INPUT_S3_FOLDER/$UUID.hhr $WDIR/t000_.hhr 
 aws s3 cp $INPUT_S3_FOLDER/$UUID.atab $WDIR/t000_.atab 
+aws s3 cp $INPUT_S3_FOLDER/metrics.yaml $WDIR/metrics.yaml 
 
 ############################################################
 # End-to-end prediction
@@ -108,19 +109,20 @@ TOTAL_PREDICT_DURATION=$[ $(date +%s) - ${PREDICT_START} ]
 echo "${UUID} prediction duration: ${TOTAL_PREDICT_DURATION} sec"
 
 # Collect metrics
-echo "JOB_ID: ${UUID}" >> $WDIR/metrics_predict.yaml
-echo "INPUT_S3_FOLDER: ${INPUT_S3_FOLDER}" >> $WDIR/metrics_predict.yaml
-echo "OUTPUT_S3_FOLDER: ${OUTPUT_S3_FOLDER}" >> $WDIR/metrics_predict.yaml
-echo "WDIR: ${WDIR}" >> $WDIR/metrics_data_prep.yaml
-echo "DBDIR: ${DBDIR}" >> $WDIR/metrics_predict.yaml
-echo "MODEL_WEIGHTS_DIR: ${MODEL_WEIGHTS_DIR}" >> $WDIR/metrics_predict.yaml
-echo "CPU: ${CPU}" >> $WDIR/metrics_predict.yaml
-echo "MEM: ${MEM}" >> $WDIR/metrics_predict.yaml
-echo "GPU: ${CUDA_VISIBLE_DEVICES}" >> $WDIR/metrics_predict.yaml
-echo "START_TIME: ${PREDICT_START}" >> $WDIR/metrics_predict.yaml
-echo "TOTAL_PREDICT_DURATION: ${TOTAL_PREDICT_DURATION}" >> $WDIR/metrics_predict.yaml
+echo "PREDICT:" >> $WDIR/metrics.yaml
+echo "  JOB_ID: ${UUID}" >> $WDIR/metrics.yaml
+echo "  INPUT_S3_FOLDER: ${INPUT_S3_FOLDER}" >> $WDIR/metrics.yaml
+echo "  OUTPUT_S3_FOLDER: ${OUTPUT_S3_FOLDER}" >> $WDIR/metrics.yaml
+echo "  WDIR: ${WDIR}" >> $WDIR/metrics_data_prep.yaml
+echo "  DBDIR: ${DBDIR}" >> $WDIR/metrics.yam\
+echo "  MODEL_WEIGHTS_DIR: ${MODEL_WEIGHTS_DIR}" >> $WDIR/metrics.yaml
+echo "  CPU: ${CPU}" >> $WDIR/metrics.yaml
+echo "  MEM: ${MEM}" >> $WDIR/metrics.yaml
+echo "  GPU: ${CUDA_VISIBLE_DEVICES}" >> $WDIR/metrics.yaml
+echo "  START_TIME: ${PREDICT_START}" >> $WDIR/metrics.yaml
+echo "  TOTAL_PREDICT_DURATION: ${TOTAL_PREDICT_DURATION}" >> $WDIR/metrics.yaml
 
-aws s3 cp $WDIR/metrics_predict.yaml $OUTPUT_S3_FOLDER/metrics_predict.yaml
+aws s3 cp $WDIR/metrics.yaml $OUTPUT_S3_FOLDER/metrics.yaml
 
 # Remove the working directory to prevent issue with subsequent testing
 rm -rf $WDIR

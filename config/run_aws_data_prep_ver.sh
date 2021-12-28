@@ -145,22 +145,23 @@ TOTAL_DATA_PREP_DURATION=$[ $(date +%s) - ${START} ]
 echo "${UUID} prep duration: ${TOTAL_DATA_PREP_DURATION} sec"
 
 # Collect metrics
-echo "JOB_ID: ${UUID}" >> $WDIR/metrics_data_prep.yaml
-echo "INPUT_S3_FOLDER: ${INPUT_S3_FOLDER}" >> $WDIR/metrics_data_prep.yaml
-echo "INPUT_FILE: ${INPUT_S3_FILE}" >> $WDIR/metrics_data_prep.yaml
-echo "OUTPUT_S3_FOLDER: ${OUTPUT_S3_FOLDER}" >> $WDIR/metrics_data_prep.yaml
-echo "WDIR: ${WDIR}" >> $WDIR/metrics_data_prep.yaml
-echo "DBDIR: ${DBDIR}" >> $WDIR/metrics_data_prep.yaml
-echo "CPU: ${CPU}" >> $WDIR/metrics_data_prep.yaml
-echo "MEM: ${MEM}" >> $WDIR/metrics_data_prep.yaml
-echo "MSA_COUNT: ${MSA_COUNT}" >> $WDIR/metrics_data_prep.yaml
-echo "TEMPLATE_COUNT: ${TEMPLATE_COUNT}" >> $WDIR/metrics_data_prep.yaml
-echo "START_TIME: ${START}" >> $WDIR/metrics_data_prep.yaml
-echo "MSA_DURATION: ${MSA_DURATION}" >> $WDIR/metrics_data_prep.yaml
-echo "SS_DURATION: ${SS_DURATION}" >> $WDIR/metrics_data_prep.yaml
-echo "TEMPLATE_DURATION: ${TEMPLATE_DURATION}" >> $WDIR/metrics_data_prep.yaml
-echo "TOTAL_DATA_PREP_DURATION: ${TOTAL_DATA_PREP_DURATION}" >> $WDIR/metrics_data_prep.yaml
+echo "DATA_PREP:" >> $WDIR/metrics.yaml
+echo "  JOB_ID: ${UUID}" >> $WDIR/metrics.yaml
+echo "  INPUT_S3_FOLDER: ${INPUT_S3_FOLDER}" >> $WDIR/metrics.yaml
+echo "  INPUT_FILE: ${INPUT_S3_FILE}" >> $WDIR/metrics.yaml
+echo "  OUTPUT_S3_FOLDER: ${OUTPUT_S3_FOLDER}" >> $WDIR/metrics.yaml
+echo "  WDIR: ${WDIR}" >> $WDIR/metrics.yaml
+echo "  DBDIR: ${DBDIR}" >> $WDIR/metrics.yaml
+echo "  CPU: ${CPU}" >> $WDIR/metrics.yaml
+echo "  MEM: ${MEM}" >> $WDIR/metrics.yaml
+echo "  MSA_COUNT: ${MSA_COUNT}" >> $WDIR/metrics.yaml
+echo "  TEMPLATE_COUNT: ${TEMPLATE_COUNT}" >> $WDIR/metrics.yaml
+echo "  START_TIME: ${START}" >> $WDIR/metrics.yaml
+echo "  MSA_DURATION: ${MSA_DURATION}" >> $WDIR/metrics.yaml
+echo "  SS_DURATION: ${SS_DURATION}" >> $WDIR/metrics.yaml
+echo "  TEMPLATE_DURATION: ${TEMPLATE_DURATION}" >> $WDIR/metrics.yaml
+echo "  TOTAL_DATA_PREP_DURATION: ${TOTAL_DATA_PREP_DURATION}" >> $WDIR/metrics.yaml
 
-aws s3 cp $WDIR/metrics_data_prep.yaml $OUTPUT_S3_FOLDER/metrics_data_prep.yaml
+aws s3 cp $WDIR/metrics.yaml $OUTPUT_S3_FOLDER/metrics.yaml
 
 echo "Done"
