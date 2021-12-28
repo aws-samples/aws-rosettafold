@@ -55,4 +55,4 @@ RUN ["/bin/bash", "-c", \
 ENV PATH /opt/conda/bin:$PATH
 
 # Define the default run command. Batch will overwrite this at run time.
-CMD ["/bin/bash", "run_aws_e2e_ver.sh"] 
+CMD ["/bin/bash"] 
