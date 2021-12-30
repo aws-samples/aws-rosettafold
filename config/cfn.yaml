@@ -300,7 +300,7 @@ Resources:
       LustreConfiguration:
         DataCompressionType: "LZ4"
         DeploymentType: "PERSISTENT_2"
-        PerUnitStorageThroughput: 125
+        PerUnitStorageThroughput: 1000
       SecurityGroupIds:
         - !GetAtt VPC.DefaultSecurityGroup
       StorageCapacity: 1200
@@ -1021,8 +1021,7 @@ Resources:
           ],
         ]
       ComputeResources:
-        AllocationStrategy: SPOT_CAPACITY_OPTIMIZED
-        BidPercentage: 95
+        AllocationStrategy: BEST_FIT_PROGRESSIVE
         InstanceRole: !Ref InstanceProfile
         InstanceTypes:
           - optimal
@@ -1035,7 +1034,7 @@ Resources:
           - !GetAtt VPC.DefaultSecurityGroup
         Subnets:
           - Ref: PrivateSubnet0
-        Type: SPOT
+        Type: EC2
       State: ENABLED
       Type: MANAGED
       Tags:
