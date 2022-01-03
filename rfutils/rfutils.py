@@ -780,7 +780,6 @@ def submit_rf_predict_job(
                 "-m",
                 str(mem),
             ],
-            "environment": [{"name": "CUDA_VISIBLE_DEVICES", "value": str(gpu)}],
             "resourceRequirements": [
                 {"value": str(gpu), "type": "GPU"},
                 {"value": str(cpu), "type": "VCPU"},
