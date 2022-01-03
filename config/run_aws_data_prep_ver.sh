@@ -77,7 +77,8 @@ IN=$WDIR/input.fa
 aws s3 cp $INPUT_S3_FOLDER/$INPUT_FILE $IN
 
 ls $WDIR
-LENGTH=`tail -n1 $IN | wc -m`
+#LENGTH=`tail -n1 $IN | wc -m`
+LENGTH=`grep -v -e "^>" $IN | tr -d "\n" | wc -m`
 
 conda activate RoseTTAFold
 
