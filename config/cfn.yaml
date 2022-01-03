@@ -1169,7 +1169,7 @@ Resources:
             ],
           ]
 
-  CPUJobDefinition:
+  CPUDataPrepJobDefinition:
     Type: AWS::Batch::JobDefinition
     Properties:
       ContainerProperties:
@@ -1187,9 +1187,9 @@ Resources:
           - "-d"
           - "/fsx/aws-rosettafold-ref-data"
           - "-c"
-          - "16"
+          - "8"
           - "-m"
-          - "60"
+          - "32"
         Image:
           !Join [":", [!GetAtt RFContainerRegistry.RepositoryUri, "latest"]]
         LogConfiguration:
@@ -1200,9 +1200,9 @@ Resources:
             SourceVolume: fsx
         ResourceRequirements:
           - Type: VCPU
-            Value: 16
+            Value: 8
           - Type: MEMORY
-            Value: 60000
+            Value: 32000
         Volumes:
           - Name: fsx
             Host:
@@ -1212,7 +1212,7 @@ Resources:
           "-",
           [
             "aws-rosettafold",
-            "job-def-cpu",
+            "job-def-cpudataprep",
             !Select [
               4,
               !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
@@ -1231,7 +1231,7 @@ Resources:
             "-",
             [
               "aws-rosettafold",
-              "job-def-cpu",
+              "job-def-cpudataprep",
               !Select [
                 4,
                 !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
@@ -1240,7 +1240,7 @@ Resources:
           ]
       Type: container    
 
-  GPUJobDefinition:
+  GPUPredictJobDefinition:
     Type: AWS::Batch::JobDefinition
     Properties:
       ContainerProperties:
@@ -1251,8 +1251,6 @@ Resources:
           - !Join ["", ["s3://", !Ref ResultsS3]]
           - "-o"
           - !Join ["", ["s3://", !Ref ResultsS3]]
-          - "-n"
-          - "input.fa"
           - "-w"
           - "/work"
           - "-d"
@@ -1260,12 +1258,9 @@ Resources:
           - "-x"
           - "/fsx/aws-rosettafold-ref-data"
           - "-c"
-          - "32"
+          - "4"
           - "-m"
-          - "90"
-        Environment:
-          - Name: CUDA_VISIBLE_DEVICES
-            Value: 2
+          - "16"
         Image:
           !Join [":", [!GetAtt RFContainerRegistry.RepositoryUri, "latest"]]
         LogConfiguration:
@@ -1276,11 +1271,11 @@ Resources:
             SourceVolume: fsx
         ResourceRequirements:
           - Type: VCPU
-            Value: 32
+            Value: 4
           - Type: MEMORY
-            Value: 90000
+            Value: 16000
           - Type: GPU
-            Value: 3
+            Value: 1
         Volumes:
           - Name: fsx
             Host:
@@ -1290,7 +1285,7 @@ Resources:
           "-",
           [
             "aws-rosettafold",
-            "job-def-gpu",
+            "job-def-gpupredict",
             !Select [
               4,
               !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
@@ -1309,7 +1304,7 @@ Resources:
             "-",
             [
               "aws-rosettafold",
-              "job-def-gpu",
+              "job-def-gpupredict",
               !Select [
                 4,
                 !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
@@ -1318,29 +1313,105 @@ Resources:
           ]
       Type: container
 
+  CPUPredictJobDefinition:
+    Type: AWS::Batch::JobDefinition
+    Properties:
+      ContainerProperties:
+        Command:
+          - "/bin/bash"
+          - "run_aws_predict_ver.sh"
+          - "-i"
+          - !Join ["", ["s3://", !Ref ResultsS3]]
+          - "-o"
+          - !Join ["", ["s3://", !Ref ResultsS3]]
+          - "-w"
+          - "/work"
+          - "-d"
+          - "/fsx/aws-rosettafold-ref-data"
+          - "-x"
+          - "/fsx/aws-rosettafold-ref-data"
+          - "-c"
+          - "4"
+          - "-m"
+          - "64"
+        Image:
+          !Join [":", [!GetAtt RFContainerRegistry.RepositoryUri, "latest"]]
+        LogConfiguration:
+          LogDriver: awslogs
+        MountPoints:
+          - ContainerPath: /fsx
+            ReadOnly: False
+            SourceVolume: fsx
+        ResourceRequirements:
+          - Type: VCPU
+            Value: 4
+          - Type: MEMORY
+            Value: 64000
+        Volumes:
+          - Name: fsx
+            Host:
+              SourcePath: /fsx
+      JobDefinitionName:
+        !Join [
+          "-",
+          [
+            "aws-rosettafold",
+            "job-def-cpupredict",
+            !Select [
+              4,
+              !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+            ],
+          ],
+        ]
+      PlatformCapabilities:
+        - EC2
+      PropagateTags: true
+      RetryStrategy:
+        Attempts: 3
+      Tags:
+        Application: AWS-RoseTTAFold
+        Name:
+          !Join [
+            "-",
+            [
+              "aws-rosettafold",
+              "job-def-cpupredict",
+              !Select [
+                4,
+                !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+              ],
+            ],
+          ]
+      Type: container      
+
 Outputs:
   CodeRepoUri:
     Description: URI for cloning the CodeCommit repository over HTTPS
     Value: !GetAtt RFCodeRepository.CloneUrlHttp
     Export:
       Name: !Join [":", [!Ref "AWS::StackName", CodeRepoUri]]
-  CPUJobDefinition:
-    Description: Name of the CPU job definition.
-    Value: !Select [5, !Split [":", !Ref CPUJobDefinition]]
-    Export:
-      Name: !Join [":", [!Ref "AWS::StackName", CPUJobDefinition]]
   CPUJobQueueName:
     Description: Name of the CPU job queue.
     Value: !Select [5, !Split [":", !Ref CPUJobQueue]]
     Export:
       Name: !Join [":", [!Ref "AWS::StackName", CPUJobQueueName]]
-  GPUJobDefinition:
-    Description: Name of the GPU job definition.
-    Value: !Select [5, !Split [":", !Ref GPUJobDefinition]]
-    Export:
-      Name: !Join [":", [!Ref "AWS::StackName", GPUJobDefinition]]
   GPUJobQueueName:
     Description: Name of the GPU job queue.
     Value: !Select [5, !Split [":", !Ref GPUJobQueue]]
     Export:
       Name: !Join [":", [!Ref "AWS::StackName", GPUJobQueueName]]
+  CPUDataPrepJobDefinition:
+    Description: Name of the data prep CPU job definition.
+    Value: !Select [5, !Split [":", !Ref CPUDataPrepJobDefinition]]
+    Export:
+      Name: !Join [":", [!Ref "AWS::StackName", CPUDataPrepJobDefinition]]  
+  GPUPredictJobDefinition:
+    Description: Name of the predict GPU job definition.
+    Value: !Select [5, !Split [":", !Ref GPUPredictJobDefinition]]
+    Export:
+      Name: !Join [":", [!Ref "AWS::StackName", GPUPredictJobDefinition]]          
+  CPUPredictJobDefinition:
+    Description: Name of the predict CPU job definition.
+    Value: !Select [5, !Split [":", !Ref CPUPredictJobDefinition]]
+    Export:
+      Name: !Join [":", [!Ref "AWS::StackName", CPUPredictJobDefinition]]                
