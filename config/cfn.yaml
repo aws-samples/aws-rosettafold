@@ -1072,7 +1072,6 @@ Resources:
         InstanceRole: !Ref InstanceProfile
         InstanceTypes:
           - g4dn
-          - g3
         LaunchTemplate:
           LaunchTemplateId: !Ref InstanceLaunchTemplate
           Version: $Latest
