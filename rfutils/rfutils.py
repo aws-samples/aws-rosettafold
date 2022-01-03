@@ -311,10 +311,7 @@ def get_rosettafold_batch_resources(region="us-east-1"):
 
     job_list = []
     for jd in job_definition_response["jobDefinitions"]:
-        if (
-            jd["status"] == "ACTIVE"
-            and "aws-rosettafold-job-def" in jd["jobDefinitionName"]
-        ):
+        if jd["status"] == "ACTIVE" and "aws-rosettafold" in jd["jobDefinitionName"]:
             name_split = jd["jobDefinitionName"].split("-")
             entry = {
                 "stackId": name_split[5],
@@ -349,10 +346,11 @@ def get_rosettafold_batch_resources(region="us-east-1"):
     df.columns = df.columns.get_level_values(1)
     df = df.rename(
         columns={
-            "cpuJob Definition": "dataPrepJobDefinition",
-            "cpuJob Queue": "dataPrepJobQueue",
-            "gpuJob Definition": "predictJobDefinition",
-            "gpuJob Queue": "predictJobQueue",
+            "cpudataprepJob Definition": "CPUDataPrepJobDefinition",
+            "cpuJob Queue": "CPUJobQueue",
+            "cpupredictJob Definition": "CPUPredictJobDefinition",
+            "gpupredictJob Definition": "GPUPredictJobDefinition",
+            "gpuJob Queue": "GPUJobQueue",
         }
     )
     return df
@@ -623,13 +621,13 @@ def submit_2_step_job(
     data_prep_input_file="input.fa",
     data_prep_job_definition="AWS-RoseTTAFold-CPU",
     data_prep_queue="AWS-RoseTTAFold-CPU",
-    data_prep_cpu=16,
-    data_prep_mem=64,
+    data_prep_cpu=8,
+    data_prep_mem=32,
     predict_job_definition="AWS-RoseTTAFold-GPU",
     predict_queue="AWS-RoseTTAFold-GPU",
-    predict_cpu=32,
-    predict_mem=96,
-    predict_gpu=2,
+    predict_cpu=4,
+    predict_mem=16,
+    predict_gpu=True,
     db_path="/fsx/aws-rosettafold-ref-data",
     weights_path="/fsx/aws-rosettafold-ref-data",
 ):
@@ -678,8 +676,8 @@ def submit_rf_data_prep_job(
     input_file="input.fa",
     job_definition="AWS-RoseTTAFold-CPU",
     job_queue="AWS-RoseTTAFold-CPU",
-    cpu=16,
-    mem=64,
+    cpu=8,
+    mem=32,
     db_path="/fsx/aws-rosettafold-ref-data",
 ):
 
@@ -738,9 +736,9 @@ def submit_rf_predict_job(
     job_name=uuid.uuid4(),
     job_definition="AWS-RoseTTAFold-GPU",
     job_queue="AWS-RoseTTAFold-GPU",
-    cpu=32,
-    mem=96,
-    gpu=2,
+    cpu=4,
+    mem=16,
+    gpu=True,
     db_path="/fsx/aws-rosettafold-ref-data",
     weights_path="/fsx/aws-rosettafold-ref-data",
     depends_on="",
@@ -754,38 +752,44 @@ def submit_rf_predict_job(
     batch_client = boto3.client("batch")
     output_pdb_uri = f"{working_folder}/{job_name}.e2e.pdb"
 
+    container_overrides = {
+        "command": [
+            "/bin/bash",
+            "run_aws_predict_ver.sh",
+            "-i",
+            working_folder,
+            "-o",
+            working_folder,
+            "-p",
+            job_name,
+            "-w",
+            "/work",
+            "-d",
+            db_path,
+            "-x",
+            weights_path,
+            "-c",
+            str(cpu),
+            "-m",
+            str(mem),
+        ],
+        "resourceRequirements": [
+            {"value": str(cpu), "type": "VCPU"},
+            {"value": str(mem * 1000), "type": "MEMORY"},
+        ],
+    }
+
+    if gpu:
+        container_overrides["resourceRequirements"].append(
+            {"value": "1", "type": "GPU"}
+        )
+
     response = batch_client.submit_job(
         jobDefinition=job_definition,
         jobName=str(job_name),
         jobQueue=job_queue,
         dependsOn=[{"jobId": depends_on, "type": "SEQUENTIAL"}],
-        containerOverrides={
-            "command": [
-                "/bin/bash",
-                "run_aws_predict_ver.sh",
-                "-i",
-                working_folder,
-                "-o",
-                working_folder,
-                "-p",
-                job_name,
-                "-w",
-                "/work",
-                "-d",
-                db_path,
-                "-x",
-                weights_path,
-                "-c",
-                str(cpu),
-                "-m",
-                str(mem),
-            ],
-            "resourceRequirements": [
-                {"value": str(gpu), "type": "GPU"},
-                {"value": str(cpu), "type": "VCPU"},
-                {"value": str(mem * 1000), "type": "MEMORY"},
-            ],
-        },
+        containerOverrides=container_overrides,
         tags={"output_pdb_uri": output_pdb_uri},
     )
     print(f"Job ID {response['jobId']} submitted")
