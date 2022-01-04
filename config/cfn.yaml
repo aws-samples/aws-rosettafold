@@ -279,6 +279,7 @@ Resources:
               ],
             ]
     DeletionPolicy: Retain
+    UpdateReplacePolicy : Retain
 
   S3Endpoint:
     Type: "AWS::EC2::VPCEndpoint"
@@ -548,6 +549,7 @@ Resources:
               ],
             ]
     DeletionPolicy: Retain
+    UpdateReplacePolicy : Retain
 
   CodeBuildRole:
     Type: AWS::IAM::Role
