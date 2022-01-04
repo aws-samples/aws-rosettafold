@@ -1,4 +1,9 @@
+.vscode*
 .vscode/*
+venv*
 venv/*
 load_testing.ipynb
+plotting.ipynb
 job_names.txt
+data/*.csv
+data/*.yaml
